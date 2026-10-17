@@ -47,8 +47,16 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 .card .tag{position:absolute;top:12px;left:12px;font-family:var(--display);font-size:12px;background:rgba(0,0,0,.55);color:var(--gold);padding:2px 7px;border-radius:999px}
 .card .buy{font-family:var(--display);font-size:13px;color:#06243a;background:linear-gradient(180deg,#8ae9ff,var(--cyan));padding:7px;box-shadow:0 3px 0 #0b6a8a}
 .card .buy.gold{color:#3a2400;background:linear-gradient(180deg,#ffe28a,var(--gold));box-shadow:0 3px 0 #9a6a10}
+.card.boss{box-shadow:0 0 0 2px #ff2e4d inset,0 0 26px -6px #ff2e4d,0 4px 0 #120624}
+.card.boss.sel{box-shadow:0 0 0 3px #ffc93c inset,0 0 30px -4px #ff2e4d,0 4px 0 #120624}
+.card .tag.boss{background:#ff2e4d;color:#fff}
 .card.locked canvas{filter:grayscale(.75) brightness(.55)}
 .go{font-family:var(--display);font-size:21px;padding:15px;color:#fff;background:linear-gradient(180deg,#ff6a3d,var(--hot));box-shadow:0 5px 0 #7a0a22,0 0 30px -6px var(--hot);letter-spacing:.02em;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.soonBanner{font-family:var(--display);font-size:14px;color:#fff;background:linear-gradient(90deg,#7a0a22,#ff2e4d 60%,#ff7a2e);padding:8px 12px;border-radius:12px;box-shadow:0 3px 0 #3a0820;animation:soonPulse 1.6s ease-in-out infinite}
+.soonBanner b{color:var(--gold)}
+@keyframes soonPulse{50%{filter:brightness(1.18)}}
+@media (prefers-reduced-motion:reduce){.soonBanner{animation:none}}
+.card .buy.soonBtn{color:#fff;background:linear-gradient(180deg,#ff6a3d,#ff2e4d);box-shadow:0 3px 0 #7a0a22;opacity:1}
 .world{font-family:var(--display);font-size:14px;color:var(--ink);background:rgba(0,0,0,.35);padding:7px 12px;border-radius:12px;font-variant-numeric:tabular-nums}
 .world b{color:var(--gold)}
 .demo{font-family:var(--body);font-size:13px;white-space:nowrap;color:var(--cyan);background:rgba(0,0,0,.3);box-shadow:none;padding:5px 9px}
@@ -96,7 +104,8 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="wallet"><button class="demo" id="musM" type="button">♪ вкл</button><button class="demo" id="demoStars" type="button">+100 ★ тест</button></div>
     </div>
     <h1 class="greet">Кому набьём ебало?</h1>
-    <p class="sub"><span style="opacity:.6">v12 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
+    <p class="sub"><span style="opacity:.6">v13 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
+    <div class="soonBanner" id="soonBanner">🔥 Скоро в ринге: босс <b>Поганец</b></div>
     <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
     <div class="tabs" role="tablist">
       <button id="tabChars" role="tab" aria-selected="true" type="button">Ебальники</button>
@@ -136,7 +145,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 12;
+const GAME_VERSION = 13;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -167,7 +176,7 @@ for (const k in TEXTURES.weapons) loadTex(TEXTURES.weapons[k], im => tex.weapons
 loadTex(TEXTURES.background, im => tex.background = im);
 
 /* ===== Персонажи и оружие ===== */
-const SKINS = [[236,196,164],[218,168,132],[184,132,98],[132,92,66]];
+const SKINS = [[236,196,164],[218,168,132],[184,132,98],[132,92,66],[150,172,104]];
 const CHARS = [
   {id:'ilya',     name:'Илюха Мазоль',      gold:0,  hp:260, regen:.10, skin:0, hair:'#5a3a22', hairH:0, nose:1,  mus:false, beard:false, col:'#e01530', sprite:'ilya'},
   {id:'dasha',    name:'Даша «Сосиски на торпеде»', gold:400, hp:260, regen:.10, skin:0, hair:'#3a2216', hairH:0, nose:-1, mus:false, beard:false, col:'#ff5fa8', sprite:'dasha'},
@@ -221,7 +230,14 @@ const WEAPONS = [
   {id:'bat',     name:'Бита',       price:35, mult:9,   blood:.35, note:'Крутит башку',  col:'#ffe066', words:['ХУЯК!','БАМС!']},
   {id:'crowbar', name:'Лом',        price:50, mult:15,  blood:.5,  note:'Искры и мясо',  col:'#ff3b6b', words:['ЗВЯК!','ХРУСЬ!']},
 ];
-const charById = id => CHARS.find(c => c.id === id);
+/* ===== БОСС =====
+   Картинки пока нет — рисуется кодом. Когда будет картинка: добавить её в SPRITES и прописать sprite:'poganets'. */
+const BOSS = {id:'poganets', name:'Поганец', boss:true, hp:2600, grow:1.15, time:45, regen:.04, skin:4, hair:'#111111', hairH:-30, nose:-1, mus:true, beard:true, col:'#ff2e4d',
+              need:10, reward:3000, rewardStars:5,
+              soon:true};   // анонс: пока нельзя выбрать. Убрать soon, когда будет картинка
+const charById = id => CHARS.find(c => c.id === id) || (id === BOSS.id ? BOSS : undefined);
+const totalKos = () => CHARS.reduce((a,c) => a + kos(c.id), 0);
+const bossOpen = () => !BOSS.soon && totalKos() >= BOSS.need;
 const weapById = id => WEAPONS.find(w => w.id === id);
 
 /* ===== Прогресс ===== */
@@ -333,7 +349,7 @@ const REGK = Object.keys(REG);
 
 function makeOpp(c){
   const k = kos(c.id);
-  const o = { c, id:c.id, name:c.name, maxHp:Math.round(c.hp*Math.pow(1.25, k)), dmg:{}, cutStage:{}, cuts:[], teeth:[1,1,1,1,1,1], teethHits:0,
+  const o = { c, id:c.id, name:c.name, maxHp:Math.round(c.hp*Math.pow(c.grow||1.25, k)), dmg:{}, cutStage:{}, cuts:[], teeth:[1,1,1,1,1,1], teethHits:0,
     skin:SKINS[c.skin], hair:c.hair, hairH:c.hairH, noseDir:c.nose, mus:c.mus, beard:c.beard,
     lumps:Array.from({length:6},()=>({a:rnd(-Math.PI,Math.PI),s:rnd(6,14)})), ko:false };
   o.sprite = c.sprite ? SPRITES[c.sprite] : null;
@@ -356,7 +372,8 @@ function startFight(){
   faceL.g.clearRect(0,0,W,H);
   for (const a of [drips, parts, splats, floats, swings, debris, bursts, rings]) a.length = 0;
   const g = floorL.g; g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='rgba(0,0,0,.5)'; g.fillRect(0,0,W,H); g.restore();
-  rec = {x:0,y:-40,a:0,vx:0,vy:6,va:0,sq:0,vsq:0}; koT = -1; sprLayerFor = null; timeLeft = FIGHT_TIME; combo = 0; lastHit = performance.now(); stun = 0; flash = 0;
+  rec = {x:0,y:-40,a:0,vx:0,vy:6,va:0,sq:0,vsq:0}; koT = -1; sprLayerFor = null; timeLeft = opp.c.time || FIGHT_TIME;
+  opp.bs = opp.c.boss ? { guard:false, next: performance.now() + 2500, until:0 } : null; combo = 0; lastHit = performance.now(); stun = 0; flash = 0;
   $('result').hidden = true; $('status').textContent = 'Хуярь по ебалу'; $('status').className = 'status';
   $('chip').textContent = weapById(S.weapon).name;
   showGlobal();
@@ -367,13 +384,19 @@ function endFight(win){
   if (win){
     S.kos[opp.id] = kos(opp.id) + 1;
     addGlobal(opp.id);
+    if (opp.c.boss){
+      const bonus = opp.c.reward + 500*(kos(opp.id)-1); S.coins += bonus; S.stars += opp.c.rewardStars;
+      $('resT').textContent = 'ПОГАНЕЦ ПОВЕРЖЕН';
+      $('resP').textContent = `+${bonus.toLocaleString('ru-RU')} монет и +${opp.c.rewardStars} ★. Босс огрёб уже ${kos(opp.id)} раз и вернётся злее.`;
+    } else {
     const bonus = 30 + Math.round(opp.maxHp*.5); S.coins += bonus;
     $('resT').textContent = 'ЕБАЛО НАБИТО';
     $('resP').textContent = `+${bonus} монет. ${opp.name} огрёб уже ${kos(opp.id)} раз.`;
+    }
     sndBell(); haptic('ko');
   } else {
     $('resT').textContent = 'НЕ ДОБИЛ';
-    $('resP').textContent = `${opp.name} отдышался и ржёт тебе в лицо. Тапай быстрее или возьми что потяжелее.`;
+    $('resP').textContent = opp.c.boss ? 'Поганец устоял. Не бей, когда он закрылся перчатками, прокачай удар и возьми что потяжелее.' : `${opp.name} отдышался и ржёт тебе в лицо. Тапай быстрее или возьми что потяжелее.`;
     haptic('heavy');
   }
   $('result').hidden = false; save();
@@ -598,6 +621,13 @@ function hit(px, py){
   if (S.energy < 1){ noEnergyT = 60; return; }
   S.energy -= 1;
   const wp = weapById(S.weapon);
+  if (opp.bs && opp.bs.guard){   // босс в блоке: урона нет, энергия сгорает
+    S.energy = Math.max(0, S.energy - 4); combo = 0; lastHit = performance.now();
+    floats.push({x:px+rnd(-10,10), y:py, txt:'БЛОК!', t:0, crit:true});
+    rings.push({x:px, y:py, t:0, col:'120,200,255', max:.25, r0:8, r1:50});
+    rec.vx += rnd(-2,2); if (audio()){ tone(900,880,.15,.15,'square'); }
+    haptic('light'); return;
+  }
 
   let [lx, ly] = toLocal(px, py);
   let best = 'nose', bd = 1e9;
@@ -960,6 +990,37 @@ function drawBody(){
   ctx.beginPath(); ctx.moveTo(HX-95,400); ctx.quadraticCurveTo(HX-40,392,HX-8,410); ctx.moveTo(HX+95,400); ctx.quadraticCurveTo(HX+40,392,HX+8,410);
   ctx.moveTo(HX-80,470); ctx.quadraticCurveTo(HX-40,500,HX-4,470); ctx.moveTo(HX+80,470); ctx.quadraticCurveTo(HX+40,500,HX+4,470); ctx.stroke();
 }
+function drawBossAura(t){
+  const angry = opp.hp < opp.maxHp*.3, p = .5 + .5*Math.sin(t*(angry ? 9 : 4));
+  const g = ctx.createRadialGradient(HX+rec.x, HY+rec.y, 60, HX+rec.x, HY+rec.y, 230);
+  g.addColorStop(0, `rgba(255,30,60,${(angry ? .55 : .3) + p*.15})`); g.addColorStop(1, 'rgba(255,30,60,0)');
+  ctx.fillStyle = g; ctx.fillRect(HX+rec.x-240, HY+rec.y-240, 480, 480);
+}
+function drawHorns(g, o, r){
+  g.save(); g.translate(r.x+HX, r.y+HY); g.rotate(r.a);
+  [-1,1].forEach(sd => {
+    const gr = g.createLinearGradient(0,-RY-60,0,-RY+30); gr.addColorStop(0,'#fff1d6'); gr.addColorStop(1,'#8a6a4a');
+    g.fillStyle = gr; g.strokeStyle = '#1a0d0a'; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(sd*48, -RY+28); g.quadraticCurveTo(sd*98, -RY-10, sd*86, -RY-62); g.quadraticCurveTo(sd*76, -RY-12, sd*22, -RY+20); g.closePath(); g.fill(); g.stroke();
+  });
+  g.restore();
+}
+function drawBossGuard(t, now){
+  const B = opp.bs; if (!B || opp.ko) return;
+  if (B.guard){   // перчатки закрывают лицо
+    const [lx, ly] = toScreen(-42, 10), [rx, ry] = toScreen(42, 10);
+    drawWeapon(ctx, 'fist', lx, ly, rec.a + .35, 1.5); drawWeapon(ctx, 'fist', rx, ry, rec.a - .35, 1.5);
+    ctx.font = '22px "Russo One", sans-serif'; ctx.textAlign = 'center'; ctx.lineWidth = 5; ctx.strokeStyle = '#1a0633';
+    ctx.strokeText('БЛОК — НЕ БЕЙ', W/2, 96); ctx.fillStyle = '#7fe0ff'; ctx.fillText('БЛОК — НЕ БЕЙ', W/2, 96);
+  } else if (B.next - now < 600){   // предупреждение
+    const [x, y] = toScreen(0, -RY - 40), s = 1 + .15*Math.sin(t*30);
+    ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+    ctx.fillStyle = '#ffc93c'; ctx.strokeStyle = '#1a0633'; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.arc(0, 0, 22, 0, 6.28); ctx.fill(); ctx.stroke();
+    ctx.font = '30px "Russo One", sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = '#1a0633'; ctx.fillText('!', 0, 2);
+    ctx.restore(); ctx.textBaseline = 'alphabetic';
+  }
+}
 function starPath(g, x, y, r1, r2, n, rot){
   g.beginPath(); for (let i=0;i<n*2;i++){ const r = i%2 ? r2 : r1, a = rot + i*Math.PI/n; g.lineTo(x+Math.cos(a)*r, y+Math.sin(a)*r); } g.closePath();
 }
@@ -1052,6 +1113,12 @@ function frame(now){
     timeLeft -= dt;
     if (now - lastHit > IDLE_MS && opp.hp < opp.maxHp){ opp.hp = Math.min(opp.maxHp, opp.hp + opp.maxHp*opp.c.regen*dt); regenOn = true; }
     if (timeLeft <= 0){ timeLeft = 0; endFight(false); }
+    const B = opp.bs;
+    if (B){
+      const angry = opp.hp < opp.maxHp*.3;
+      if (!B.guard && now >= B.next){ B.guard = true; B.until = now + (angry ? 1700 : 1200); }
+      else if (B.guard && now >= B.until){ B.guard = false; B.next = now + rnd(angry ? 1400 : 2300, angry ? 2600 : 4200); }
+    }
   }
 
   trim(parts, MAX.parts); trim(debris, MAX.debris); trim(drips, MAX.drips); trim(splats, MAX.splats);
@@ -1065,8 +1132,10 @@ function frame(now){
   ctx.drawImage(bgCache, Math.round(sx*dpr*scale), Math.round(sy*dpr*scale));
   ctx.setTransform(dpr*scale,0,0,dpr*scale,dpr*(offX + sx*scale), dpr*(offY + sy*scale));
   drawArena(t); drawRing();
+  if (opp.bs) drawBossAura(t);
   if (opp.sprite) drawSpriteChar(ctx, opp, {x:HX+rec.x, y:HY+rec.y, a:rec.a, sq:rec.sq}, faceL.c);
-  else { drawBody(); drawHead(ctx, opp, {x:HX+rec.x, y:HY+rec.y, a:rec.a, sq:rec.sq}, faceL.c); }
+  else { drawBody(); drawHead(ctx, opp, {x:HX+rec.x, y:HY+rec.y, a:rec.a, sq:rec.sq}, faceL.c); if (opp.c.boss) drawHorns(ctx, opp, rec); }
+  if (opp.bs) drawBossGuard(t, now);
   drawStun(t);
   for (const p of parts){
     if (p.type==='t'){ ctx.fillStyle='#f4efe4'; ctx.fillRect(p.x-2.5,p.y-3.5,5,7); continue; }
@@ -1168,7 +1237,7 @@ function fightUI(regenOn){
   setUI('oppName','text', opp.name); setUI('oppCnt','text', String(kos(opp.id)));
   setUI('hpFill','width', (opp.hp/opp.maxHp*100).toFixed(1) + '%'); setUI('hpText','text', Math.ceil(opp.hp) + ' / ' + opp.maxHp);
   setUI('hpBar','class', 'bar hp' + (regenOn ? ' regen' : ''));
-  if (mode === 'fight'){ setUI('status','text', regenOn ? 'Отдыхает, сука. Бей!' : 'Хуярь по ебалу'); setUI('status','class', 'status' + (regenOn ? ' warn' : '')); }
+  if (mode === 'fight'){ setUI('status','text', opp.bs ? (opp.hp < opp.maxHp*.3 ? 'ПОГАНЕЦ В ЯРОСТИ' : 'Бей, пока не закрылся') : regenOn ? 'Отдыхает, сука. Бей!' : 'Хуярь по ебалу'); setUI('status','class', 'status' + (regenOn ? ' warn' : '')); }
   setUI('enFill','width', (S.energy/enMax()*100).toFixed(1) + '%'); setUI('enText','text', '⚡ ' + Math.floor(S.energy) + ' / ' + enMax());
   const mult = 1 + Math.min(combo,40)/20;
   setUI('combo','text', (combo > 2 && performance.now()-lastHit < 600) ? 'КОМБО ×' + mult.toFixed(2) : '');
@@ -1213,30 +1282,38 @@ function buyBtn(it, isChar){
 }
 function renderList(){
   const list = $('list'); list.innerHTML = '';
-  const items = tab === 'chars' ? CHARS : WEAPONS;
+  const items = tab === 'chars' ? [BOSS, ...CHARS] : WEAPONS;
   for (const it of items){
     const isChar = tab === 'chars';
-    const owned = isChar ? S.chars.includes(it.id) : S.weapons.includes(it.id);
+    const owned = it.boss ? bossOpen() : isChar ? S.chars.includes(it.id) : S.weapons.includes(it.id);
     const selected = isChar ? S.sel === it.id : S.weapon === it.id;
     const card = document.createElement('div');
-    card.className = 'card' + (selected ? ' sel' : '') + (owned ? '' : ' locked');
+    card.className = 'card' + (selected ? ' sel' : '') + (owned || (it.boss && BOSS.soon) ? '' : ' locked') + (it.boss ? ' boss' : '');
     card.style.setProperty('--c', it.col);
     const meta = isChar
       ? `<span>набито: <b>${kos(it.id)}</b></span>` + (GLOBAL ? `<span>всеми: <b>${(GLOBAL[it.id]||0).toLocaleString('ru-RU')}</b></span>` : `<span>HP <b>${Math.round(it.hp*Math.pow(1.25,kos(it.id)))}</b></span>`)
       : `<span>${it.note}</span><span>урон <b>×${it.mult}</b></span>`;
     card.innerHTML = `<canvas width="240" height="240"></canvas>${!isChar && owned ? '' : ''}<div class="n">${it.name}</div><div class="m">${meta}</div>
-      ${owned ? '' : buyBtn(it, isChar)}`;
-    if (isChar && kos(it.id) >= 10){ const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = 'Постоянный клиент'; card.appendChild(tg); }
+      ${owned ? '' : it.boss ? (BOSS.soon ? `<button class="buy soonBtn" type="button" disabled>🔜 СКОРО</button>` : `<button class="buy gold" type="button" disabled>🔒 Набей ещё ${Math.max(0, BOSS.need - totalKos())}</button>`) : buyBtn(it, isChar)}`;
+    if (it.boss){ const tg = document.createElement('span'); tg.className = 'tag boss'; tg.textContent = 'БОСС · 45 сек'; card.appendChild(tg); }
+    if (isChar && !it.boss && kos(it.id) >= 10){ const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = 'Постоянный клиент'; card.appendChild(tg); }
     const g = card.querySelector('canvas').getContext('2d');
     if (isChar){
-      const bruise = Math.min(.55, kos(it.id)*.05), key = it.id + ':' + bruise + ':' + (SPRITES[it.sprite]?.ready ? 1 : 0);
+      const bruise = Math.min(.55, kos(it.id)*.05), key = it.id + ':' + bruise + ':' + (SPRITES[it.sprite]?.ready ? 1 : 0) + ':' + (it.boss && BOSS.soon ? 's' : '');
       let pc = portraitCache[key];
       if (!pc){
         pc = document.createElement('canvas'); pc.width = pc.height = 240; const pg = pc.getContext('2d');
         const o = makeOpp(it); REGK.forEach(k => o.dmg[k] = bruise);
         pg.save(); pg.scale(240/400, 240/400); pg.translate(0, 30);
-        if (o.sprite) drawSpriteChar(pg, o, {x:200 - o.ell.cx, y:210 - o.ell.cy*.5, a:0}, null); else drawHead(pg, o, {x:200, y:210, a:0}, null);
+        if (o.sprite) drawSpriteChar(pg, o, {x:200 - o.ell.cx, y:210 - o.ell.cy*.5, a:0}, null);
+        else { drawHead(pg, o, {x:200, y:210, a:0}, null); if (it.boss) drawHorns(pg, o, {x:0, y:-26, a:0}); }
         pg.restore();
+        if (it.boss && BOSS.soon){   // анонс: тёмный силуэт и знак вопроса
+          pg.globalCompositeOperation = 'source-atop'; pg.fillStyle = '#0d0418'; pg.fillRect(0,0,240,240);
+          pg.globalCompositeOperation = 'source-over';
+          pg.font = '86px "Russo One", sans-serif'; pg.textAlign = 'center'; pg.textBaseline = 'middle';
+          pg.lineWidth = 8; pg.strokeStyle = '#0d0418'; pg.strokeText('?', 120, 130); pg.fillStyle = '#ff2e4d'; pg.fillText('?', 120, 130);
+        }
         if (!o.sprite || o.sprite.ready) portraitCache[key] = pc;
       }
       g.drawImage(pc, 0, 0);
@@ -1276,13 +1353,14 @@ $('upEn').onclick = () => { const c = enCost(); if (S.coins >= c){ S.coins -= c;
 try { const tg = window.Telegram?.WebApp; if (tg){ tg.ready(); tg.expand(); } } catch(e){}
 S.chars = S.chars.filter(id => charById(id));
 CHARS.forEach(c => { if (c.gold === 0 && !S.chars.includes(c.id)) S.chars.push(c.id); });
-if (!S.chars.includes(S.sel)) S.sel = CHARS[0].id;
+if (!S.chars.includes(S.sel) && !(S.sel === BOSS.id && bossOpen())) S.sel = CHARS[0].id;
 if (!S.weapons.includes(S.weapon)) S.weapon = 'fist';
 $('musM').onclick = e => { e.stopPropagation(); toggleMusic(); };
 $('musF').onclick = e => { e.stopPropagation(); toggleMusic(); };
 $('musM').addEventListener('pointerdown', e => e.stopPropagation());
 $('musF').addEventListener('pointerdown', e => e.stopPropagation());
 musLabels();
+el('soonBanner').hidden = !BOSS.soon;
 renderList(); show('menu'); requestAnimationFrame(frame); loadGlobal();
 if (document.fonts) document.fonts.ready.then(() => { buildArena(); buildBgCache(); if (mode === 'menu') renderList(); });
 </script>

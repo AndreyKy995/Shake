@@ -104,7 +104,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="wallet"><button class="demo" id="musM" type="button">♪ вкл</button><button class="demo" id="demoStars" type="button">+100 ★ тест</button></div>
     </div>
     <h1 class="greet">Кому набьём ебало?</h1>
-    <p class="sub"><span style="opacity:.6">v16 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
+    <p class="sub"><span style="opacity:.6">v17 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
     <div class="soonBanner" id="soonBanner">🔥 Скоро в ринге: босс <b>Поганец</b></div>
     <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
     <div class="tabs" role="tablist">
@@ -145,7 +145,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 16;
+const GAME_VERSION = 17;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -399,7 +399,7 @@ function startFight(){
   for (const a of [drips, parts, splats, floats, swings, debris, bursts, rings]) a.length = 0;
   const g = floorL.g; g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='rgba(0,0,0,.5)'; g.fillRect(0,0,W,H); g.restore();
   rec = {x:0,y:-40,a:0,vx:0,vy:6,va:0,sq:0,vsq:0}; koT = -1; sprLayerFor = null; timeLeft = opp.c.time || FIGHT_TIME;
-  say = null; saidLow = false; idleSaid = false;
+  say = null; saidLow = false; idleSaid = false; fin = null;
   opp.bs = opp.c.boss ? { guard:false, next: performance.now() + 2500, until:0 } : null; combo = 0; lastHit = performance.now(); stun = 0; flash = 0;
   $('result').hidden = true; $('status').textContent = 'Хуярь по ебалу'; $('status').className = 'status';
   $('chip').textContent = weapById(S.weapon).name;
@@ -465,6 +465,51 @@ function deb(kind, x, y, n, o){
   for (let i=0;i<n;i++){
     const a = (o.dir ?? -Math.PI/2) + rnd(-(o.spread??1.2), o.spread??1.2), sp = rnd(o.smin??2, o.smax??6);
     debris.push({kind, x, y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, g:o.g??.3, life:0, max:rnd(o.lmin??.5, o.lmax??1), size:rnd(o.rmin??2, o.rmax??4), rot:rnd(0,6.28), vr:rnd(-.3,.3), land:FLOOR+rnd(6,78), col:o.col});
+  }
+}
+/* ===== ДОБИВАНИЕ: слоумо, наезд камеры, фонтан крови ===== */
+let fin = null;
+const FIN_WORDS = ['ДОБИТ!', 'СПОКОЙНОЙ НОЧИ', 'ФАТАЛИТИ', 'В НОКАУТ!', 'ОТДЫХАЙ'];
+function startFinisher(sx, sy, dx, dy){
+  fin = { t:0, word: pick(FIN_WORDS), x: HX + rec.x, y: HY + rec.y };
+  shake = reduceMotion ? 0 : 16; flash = .55; flashCol = '255,40,60';
+  bloodBurst(sx, sy, dx, dy, 70, 1); bloodBurst(sx, sy, -dx, -1, 30, 1);
+  for (let i=0;i<3;i++) parts.push({x:sx,y:sy,vx:rnd(-6,6),vy:rnd(-9,-5),r:3,land:FLOOR+rnd(10,70),type:'t'});
+  screenSplat(rnd(60,170), rnd(80,300), rnd(40,70)); screenSplat(rnd(230,340), rnd(80,300), rnd(30,60));
+  rec.vx += dx*7; rec.vy += dy*4 - 2; rec.va += side*.22;
+  if (audio()){ tone(70,30,1.1,.9); tone(140,40,.5,.6,'square'); nz(.6,'lowpass',500,.6); setTimeout(() => tone(1200,1180,.5,.12,'triangle'), 350); }
+  haptic('heavy'); setTimeout(() => haptic('heavy'), 160);
+}
+const finSpeed = () => !fin ? 1 : fin.t < 1.0 ? .2 : Math.min(1, .2 + (fin.t - 1.0)*1.2);   // замедление времени
+function finZoom(){ if (!fin || reduceMotion) return 1; const t = fin.t;
+  const up = Math.min(1, t/.25), down = t > 1.3 ? Math.max(0, 1 - (t-1.3)/.5) : 1; const e = up*up*(3-2*up); return 1 + .35*e*down; }
+function drawFinisher(){
+  if (!fin) return;
+  const t = fin.t, z = finZoom();
+  if (z > 1.001){   // наезд камеры: увеличиваем область вокруг головы
+    const fx = fin.x*.75 + (HX+rec.x)*.25, fy = fin.y*.75 + (HY+rec.y)*.25;   // камера держится у места удара
+    const hx = dpr*(offX + fx*scale), hy = dpr*(offY + fy*scale);
+    const w = cv.width/z, h = cv.height/z;
+    const sx = Math.max(0, Math.min(cv.width - w, hx - w/2)), sy = Math.max(0, Math.min(cv.height - h, hy - h*.5));
+    ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.drawImage(cv, sx, sy, w, h, 0, 0, cv.width, cv.height); ctx.restore();
+  }
+  ctx.save(); ctx.setTransform(1,0,0,1,0,0);
+  const bar = Math.min(1, t/.2) * (t > 1.7 ? Math.max(0, 1 - (t-1.7)/.3) : 1) * cv.height*.09;   // киношные полосы
+  ctx.fillStyle = '#000'; ctx.fillRect(0, 0, cv.width, bar); ctx.fillRect(0, cv.height - bar, cv.width, bar);
+  const vg = ctx.createRadialGradient(cv.width/2, cv.height*.45, cv.width*.25, cv.width/2, cv.height*.45, cv.width*.9);
+  vg.addColorStop(0, 'rgba(120,0,20,0)'); vg.addColorStop(1, `rgba(120,0,20,${.55*Math.min(1, t/.3)*(t > 1.6 ? Math.max(0, 1-(t-1.6)/.4) : 1)})`);
+  ctx.fillStyle = vg; ctx.fillRect(0, 0, cv.width, cv.height);
+  ctx.restore();
+  if (t > .15){   // надпись
+    const k = Math.min(1, (t-.15)/.18), pop = k < 1 ? 2.2 - 1.2*k : 1 + .03*Math.sin(t*20);
+    const a = t > 1.8 ? Math.max(0, 1 - (t-1.8)/.3) : 1;
+    ctx.save(); ctx.globalAlpha = a; ctx.translate(W/2, 405); ctx.rotate(-.06); ctx.scale(pop, pop);
+    const fs = fin.word.length > 9 ? 36 : 48;
+    ctx.font = `${fs}px "Russo One", sans-serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.lineWidth = 12; ctx.strokeStyle = '#1a0633'; ctx.strokeText(fin.word, 4, 6);
+    ctx.lineWidth = 9; ctx.strokeStyle = '#ff2e4d'; ctx.strokeText(fin.word, 0, 0);
+    ctx.fillStyle = '#ffc93c'; ctx.fillText(fin.word, 0, 0);
+    ctx.restore(); ctx.textBaseline = 'alphabetic';
   }
 }
 let say = null, lastSay = 0, saidLow = false, idleSaid = false;
@@ -750,10 +795,9 @@ function hit(px, py){
   }
   if (opp.hp <= 0){
     opp.ko = true; koT = 0; stun = 3;
-    speak(own('ko') || 'Всё...', 2.4, true);
-    const [kx,ky] = toScreen(0,20); bloodBurst(kx, ky, 0, -1, 40, 1); screenSplat(rnd(80,320), rnd(80,300), rnd(40,70));
-    burst(W/2, 120, 'НОКАУТ!', '#ff2e4d', true);
-    setTimeout(() => endFight(true), 1200);
+    speak(own('ko') || 'Всё...', 2.6, true);
+    startFinisher(sx, sy, dx, dy);
+    setTimeout(() => endFight(true), 2300);
   }
 }
 cv.addEventListener('pointerdown', e => {
@@ -1193,7 +1237,8 @@ function frame(now){
 
   trim(parts, MAX.parts); trim(debris, MAX.debris); trim(drips, MAX.drips); trim(splats, MAX.splats);
   const frozen = freeze > 0; if (frozen) freeze -= Math.max(dt, rawDt);
-  if (!frozen) step(dt);
+  if (fin){ fin.t += dt; if (fin.t > 2.4) fin = null; }
+  if (!frozen) step(dt*finSpeed());
 
   // рисуем
   const sh = shake > .5 ? shake : 0, sx = rnd(-sh,sh), sy = rnd(-sh,sh);
@@ -1228,7 +1273,7 @@ function frame(now){
     ctx.fillStyle = f.crit ? '#ffc93c' : '#fff'; ctx.fillText(f.txt, f.x, f.y - f.t*60);
   }
   ctx.globalAlpha = 1;
-  drawBursts(); drawSay();
+  drawBursts(); drawSay(); drawFinisher();
   if (noEnergyT > 0){ noEnergyT--; ctx.font = '20px "Russo One", sans-serif'; ctx.lineWidth = 4; ctx.strokeStyle = '#1a0633'; ctx.strokeText('Сдох. Отдышись, боец', W/2, 60); ctx.fillStyle = '#33d6ff'; ctx.fillText('Сдох. Отдышись, боец', W/2, 60); }
   drawSplats();
   if (flash > 0){ ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle = `rgba(${flashCol},${flash})`; ctx.fillRect(0,0,cv.width,cv.height); ctx.restore(); flash = Math.max(0, flash - dt*2.5); }
@@ -1239,12 +1284,13 @@ function frame(now){
 function step(dt){
   const k = dt*60;   // 1 при 60 кадрах/с; на медленных телефонах всё движется с той же скоростью
   stun = Math.max(0, stun - dt);
-  const sub = Math.max(1, Math.round(k));   // пружины считаем мелкими шагами, чтобы не разносило
+  const sub = Math.max(1, Math.round(k)), f = k/sub;   // пружины мелкими шагами; f<1 — замедленное время
+  const P = (v) => Math.pow(v, f);
   for (let i=0;i<sub;i++){
-    if (opp.ko){ rec.vy += .35; rec.va += .004*opp.noseDir; rec.vx *= .9; rec.va *= .96; }
-    else { rec.vx += -rec.x*.16; rec.vy += -rec.y*.16; rec.va += -rec.a*.16; rec.vx *= .78; rec.vy *= .78; rec.va *= .8; }
-    rec.x += rec.vx; rec.y += rec.vy; rec.a += rec.va;
-    rec.vsq += -rec.sq*.3; rec.vsq *= .7; rec.sq += rec.vsq;
+    if (opp.ko){ rec.vy += .35*f; rec.va += .004*opp.noseDir*f; rec.vx *= P(.9); rec.va *= P(.96); }
+    else { rec.vx += -rec.x*.16*f; rec.vy += -rec.y*.16*f; rec.va += -rec.a*.16*f; rec.vx *= P(.78); rec.vy *= P(.78); rec.va *= P(.8); }
+    rec.x += rec.vx*f; rec.y += rec.vy*f; rec.a += rec.va*f;
+    rec.vsq += -rec.sq*.3*f; rec.vsq *= P(.7); rec.sq += rec.vsq*f;
   }
   if (opp.ko) koT += dt;
   if (opp.ko && rec.y > 160){ rec.y = 160; rec.vy *= -.25; }

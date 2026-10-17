@@ -104,7 +104,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="wallet"><button class="demo" id="musM" type="button">♪ вкл</button><button class="demo" id="demoStars" type="button">+100 ★ тест</button></div>
     </div>
     <h1 class="greet">Кому набьём ебало?</h1>
-    <p class="sub"><span style="opacity:.6">v17 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
+    <p class="sub"><span style="opacity:.6">v18 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
     <div class="soonBanner" id="soonBanner">🔥 Скоро в ринге: босс <b>Поганец</b></div>
     <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
     <div class="tabs" role="tablist">
@@ -145,7 +145,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 17;
+const GAME_VERSION = 18;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -182,7 +182,9 @@ const PHRASES = {
   hurt:  ['Ай, бля!', 'За что?!', 'Ну ты чё?!', 'Не по лицу!', 'Мама...', 'Сука, больно!', 'Я тебя запомнил', 'Эй, полегче!', 'Ой-ой-ой', 'Это незаконно!'],
   crit:  ['Ёбаный рот!', 'Зубы, мои зубы!', 'Звёздочки вижу...', 'Ох, ёпта!'],
   weapon:{ pan:['Сковородкой?! Серьёзно?!', 'БОНГ, сука!'], brick:['Кирпичом-то за что?!', 'Ты стройку ограбил?!'],
-           bat:['Ты чё, бейсболист?!', 'Убери биту!'], crowbar:['Лом?! Ты ебанутый?!', 'Против лома нет приёма...'] },
+           bat:['Ты чё, бейсболист?!', 'Убери биту!'], crowbar:['Лом?! Ты ебанутый?!', 'Против лома нет приёма...'],
+           fish:['Воблой?! Фу, бля!', 'Я теперь рыбой воняю!', 'Пивка бы к ней...'], stool:['Табуреткой, как в деревне!', 'Сядь уже, сука!'],
+           extinguisher:['Я же не горю!', 'Огнетушителем?! Ты пожарный?!', 'Пена в глазах!'] },
   idle:  ['Это всё?', 'Устал, слабак?', 'Бьёшь как девочка', 'Я даже не вспотел', 'Ну давай, давай!', 'Скучно...'],
   low:   ['Хватит, хватит!', 'Всё, я сдаюсь!', 'Позовите маму...', 'Лежачего не бьют!'],
   win:   ['Ха! Слабак!', 'Иди тренируйся', 'И это всё, что ты можешь?'],
@@ -252,9 +254,12 @@ for (const id in SPRITES){
 const WEAPONS = [
   {id:'fist',    name:'Кулаки',     price:0,   mult:1,   blood:0,   note:'Бац-бац',       col:'#ffd23f', words:['БАЦ!','ТЫЩ!','ПАФ!']},
   {id:'pan',     name:'Сковородка', price:10,  mult:2.5, blood:.1,  note:'Бонг и звёзды', col:'#7fe0ff', words:['БОНГ!','ДЗЫНЬ!']},
+  {id:'fish',    name:'Вобла',      price:15,  mult:3.5, blood:.15, note:'Мокро и чешуя', col:'#9fd8ff', words:['ШЛЁП!','ХЛЮП!']},
   {id:'brick',   name:'Кирпич',     price:20,  mult:5,   blood:.25, note:'Крошится',      col:'#ff8a3d', words:['ХРЯСЬ!','ТРЕСК!']},
+  {id:'stool',   name:'Табуретка',  price:30,  mult:7,   blood:.3,  note:'В щепки',       col:'#e0a060', words:['ТРАХ!','БДЫЩ!']},
   {id:'bat',     name:'Бита',       price:35, mult:9,   blood:.35, note:'Крутит башку',  col:'#ffe066', words:['ХУЯК!','БАМС!']},
   {id:'crowbar', name:'Лом',        price:50, mult:15,  blood:.5,  note:'Искры и мясо',  col:'#ff3b6b', words:['ЗВЯК!','ХРУСЬ!']},
+  {id:'extinguisher', name:'Огнетушитель', price:70, mult:20, blood:.45, note:'Пена и звон', col:'#ff5a3d', words:['ПШШШ!','ДОН-Н!']},
 ];
 /* ===== БОСС =====
    Картинки пока нет — рисуется кодом. Когда будет картинка: добавить её в SPRITES и прописать sprite:'poganets'. */
@@ -453,6 +458,7 @@ function floorStain(x, y, r, kind){
   const g = floorL.g;
   if (kind === 't'){ g.fillStyle='#efe9dc'; g.fillRect(x-2,y-3,4,6); return; }
   if (kind === 'shard'){ g.fillStyle='#b04a2c'; g.fillRect(x-r,y-r*.5,r*2,r); return; }
+  if (kind === 'scale'){ g.fillStyle='rgba(220,235,250,.9)'; g.fillRect(x-1.5,y-1,3,2); return; }
   if (kind === 'splinter'){ g.fillStyle='#c79552'; g.fillRect(x-r*1.5,y-1,r*3,2); return; }
   g.fillStyle = `rgba(${Math.round(rnd(120,160))},8,16,${rnd(.75,.95)})`;
   g.beginPath(); g.ellipse(x,y,r*1.8,r*0.7,0,0,6.28); g.fill();
@@ -578,6 +584,29 @@ function weaponFX(wp, sx, sy, lx, ly, dx, dy, crit){
       rings.push({x:sx, y:sy, t:0, col:'255,224,102', max:.3, r0:10, r1:70});
       burst(sx, sy - 50, word, wp.col, crit);
       break;
+    case 'fish':
+      deb('scale', sx, sy, 14, {dir:away, spread:1.5, smin:2, smax:7, g:.18, lmin:.6, lmax:1.1, rmin:2, rmax:3.5});
+      deb('water', sx, sy, 16, {dir:away, spread:1.3, smin:3, smax:9, g:.3, lmin:.5, lmax:.9, rmin:1.5, rmax:3.5});
+      rec.vx += dx*4; rec.va += side*.12;
+      faceL.g.fillStyle = 'rgba(190,230,255,.35)'; faceL.g.beginPath(); faceL.g.ellipse(lx+W/2, ly+H/2, 40, 18, rnd(-1,1), 0, 6.28); faceL.g.fill();
+      burst(sx, sy - 50, word, wp.col, crit);
+      break;
+    case 'stool':
+      deb('plank', sx, sy, 5, {dir:away, spread:1.3, smin:4, smax:10, g:.36, lmin:.9, lmax:1.4, rmin:5, rmax:9});
+      deb('splinter', sx, sy, 10, {dir:away, spread:1.6, smin:3, smax:9, g:.3, lmin:.6, lmax:1.1, rmin:3, rmax:6});
+      deb('dust', sx, sy, 8, {dir:away, spread:2.5, smin:.4, smax:2, g:-.02, lmin:.6, lmax:1, rmin:10, rmax:18});
+      rec.vsq += .16; stun = Math.max(stun, 1.4); shake = Math.max(shake, 10);
+      burst(sx, sy - 50, word, wp.col, crit);
+      break;
+    case 'extinguisher':
+      deb('foam', sx, sy, 18, {dir:away, spread:2.2, smin:1, smax:5, g:-.03, lmin:.8, lmax:1.4, rmin:10, rmax:22});
+      deb('spark', sx, sy, 8, {dir:away, spread:1.4, smin:4, smax:10, g:.22, lmin:.2, lmax:.4, rmin:1, rmax:2});
+      rings.push({x:sx, y:sy, t:0, col:'255,255,255', max:.35, r0:16, r1:120});
+      bloodBurst(sx, sy, dx, dy, 16, 1);
+      for (let i=0;i<5;i++){ faceL.g.fillStyle = 'rgba(255,255,255,.75)'; faceL.g.beginPath(); faceL.g.arc(lx+W/2+rnd(-30,30), ly+H/2+rnd(-25,25), rnd(5,12), 0, 6.28); faceL.g.fill(); }
+      rec.vsq += .2; stun = Math.max(stun, 1.8); flash = .35; flashCol = '235,245,255';
+      burst(sx, sy - 50, word, wp.col, crit);
+      break;
     case 'crowbar':
       deb('spark', sx, sy, 22, {dir:away, spread:1.6, smin:4, smax:13, g:.22, lmin:.25, lmax:.55, rmin:1, rmax:2});
       opp.cuts.push({x:lx+rnd(-6,6), y:ly+rnd(-6,6), a:rnd(-1.2,1.2), len:rnd(22,34)});
@@ -602,6 +631,9 @@ function sndHit(wet, crit, wid){
   if (wid==='pan'){ tone(520,505,.9,.3,'triangle'); tone(1310,1295,.6,.1); tone(2090,2080,.4,.05); }
   if (wid==='brick'){ tone(90,40,.25,.6,'square'); nz(.25,'bandpass',1200,.5,.8); }
   if (wid==='bat'){ tone(320,180,.12,.5,'triangle'); nz(.06,'highpass',2500,.3); }
+  if (wid==='fish'){ nz(.12,'highpass',1800,.5); tone(220,120,.1,.3,'triangle'); }
+  if (wid==='stool'){ nz(.22,'bandpass',700,.7,.7); tone(110,50,.2,.6,'square'); }
+  if (wid==='extinguisher'){ tone(620,600,.7,.25,'triangle'); tone(930,915,.5,.1); nz(.9,'highpass',3000,.25); tone(60,30,.3,.8); }
   if (wid==='crowbar'){ tone(980,960,.6,.18,'triangle'); tone(1460,1450,.4,.08); tone(70,35,.3,.8); }
   if (wet > .35) nz(.12,'bandpass',rnd(1800,2600),wet*.35,1.5);
 }
@@ -1037,6 +1069,36 @@ function drawWeapon(g, id, x, y, ang, k, alpha=1){
     g.fillStyle = gr; g.beginPath(); g.moveTo(-18,-70); g.quadraticCurveTo(0,-86,18,-70); g.lineTo(7,110); g.lineTo(-7,110); g.closePath(); g.fill();
     g.fillStyle = '#e01530'; g.fillRect(-12, -40, 24, 6);
     g.fillStyle = '#1e1e28'; g.fillRect(-9, 80, 18, 32);
+  } else if (id === 'fish'){   // вобла за хвост
+    g.fillStyle = '#c99a4a'; g.strokeStyle = '#4a2e14'; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(0, 70); g.lineTo(-20, 105); g.lineTo(20, 105); g.closePath(); g.fill(); g.stroke();
+    const gr = g.createLinearGradient(-30,0,30,0); gr.addColorStop(0,'#8a6230'); gr.addColorStop(.5,'#e8c27a'); gr.addColorStop(1,'#9a6a32');
+    g.fillStyle = gr; g.beginPath(); g.ellipse(0, -5, 30, 80, 0, 0, 6.28); g.fill(); g.stroke();
+    g.strokeStyle = 'rgba(80,50,20,.45)'; g.lineWidth = 1.5;
+    for (let i=-50;i<55;i+=12){ g.beginPath(); g.arc(0, i, 18, .3, Math.PI-.3); g.stroke(); }
+    g.fillStyle = '#b8873e'; g.strokeStyle = '#4a2e14'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(28, 0); g.lineTo(46, 18); g.lineTo(28, 24); g.closePath(); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(-28, 0); g.lineTo(-46, 18); g.lineTo(-28, 24); g.closePath(); g.fill(); g.stroke();
+    g.fillStyle = '#fff'; g.beginPath(); g.arc(-10, -62, 6, 0, 6.28); g.fill(); g.fillStyle = '#000'; g.beginPath(); g.arc(-10, -62, 3, 0, 6.28); g.fill();
+    g.strokeStyle = '#4a2e14'; g.lineWidth = 2.5; g.beginPath(); g.moveTo(-6, -80); g.lineTo(8, -76); g.stroke();
+  } else if (id === 'stool'){   // табуретка ножками вниз, бьём сиденьем
+    g.strokeStyle = '#5a3418'; g.lineWidth = 3;
+    const wood = g.createLinearGradient(-50,0,50,0); wood.addColorStop(0,'#a8682e'); wood.addColorStop(.5,'#e0a060'); wood.addColorStop(1,'#a0602a');
+    g.fillStyle = wood;
+    [[-34,-40],[34,-40],[-10,-40]].forEach(([x,y],i) => { g.save(); g.translate(x, y); g.rotate(i===2 ? 0 : (x<0 ? .12 : -.12)); g.fillRect(-7, 0, 14, 130); g.strokeRect(-7, 0, 14, 130); g.restore(); });
+    g.fillRect(-42, 30, 84, 9); g.strokeRect(-42, 30, 84, 9);
+    g.beginPath(); g.ellipse(0, -46, 56, 18, 0, 0, 6.28); g.fill(); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.25)'; g.beginPath(); g.ellipse(-16, -51, 22, 6, 0, 0, 6.28); g.fill();
+  } else if (id === 'extinguisher'){   // огнетушитель днищем вперёд
+    const gr = g.createLinearGradient(-26,0,26,0); gr.addColorStop(0,'#8a0a14'); gr.addColorStop(.45,'#ff4a3a'); gr.addColorStop(1,'#7a0812');
+    g.fillStyle = gr; g.strokeStyle = '#2a0408'; g.lineWidth = 3;
+    g.beginPath(); g.roundRect ? g.roundRect(-26, -80, 52, 150, 18) : g.rect(-26,-80,52,150); g.fill(); g.stroke();
+    g.fillStyle = '#f2f2f2'; g.fillRect(-26, -10, 52, 34); g.strokeRect(-26, -10, 52, 34);
+    g.fillStyle = '#d61e2a'; g.font = 'bold 13px sans-serif'; g.textAlign = 'center'; g.fillText('ОУ-5', 0, 12);
+    g.fillStyle = '#2a2a2a'; g.fillRect(-12, 70, 24, 16); g.fillRect(-4, 86, 8, 18);
+    g.fillStyle = '#ddd'; g.beginPath(); g.arc(14, 78, 8, 0, 6.28); g.fill(); g.stroke();
+    g.strokeStyle = '#111'; g.lineWidth = 6; g.beginPath(); g.moveTo(-10, 90); g.quadraticCurveTo(-48, 80, -40, 20); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(-16, -74, 7, 60);
   } else if (id === 'crowbar'){
     g.strokeStyle = '#3a4048'; g.lineWidth = 12; g.lineCap = 'round';
     g.beginPath(); g.moveTo(0, 120); g.lineTo(0, -50); g.quadraticCurveTo(0, -80, -26, -78); g.stroke();
@@ -1153,6 +1215,24 @@ function drawStun(t){
 function drawDebris(){
   for (const p of debris){
     const k = 1 - p.life/p.max;
+    if (p.kind === 'scale'){
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.globalAlpha = k;
+      ctx.fillStyle = (Math.sin(p.rot*3) > 0) ? '#e8f4ff' : '#9fb4c8'; ctx.beginPath(); ctx.moveTo(0,-p.size); ctx.lineTo(p.size*.7,0); ctx.lineTo(0,p.size); ctx.lineTo(-p.size*.7,0); ctx.closePath(); ctx.fill();
+      ctx.restore(); ctx.globalAlpha = 1; continue;
+    }
+    if (p.kind === 'water'){
+      ctx.fillStyle = `rgba(150,215,255,${.85*k})`; ctx.beginPath(); ctx.ellipse(p.x, p.y, p.size, p.size*1.6, Math.atan2(p.vy,p.vx)+Math.PI/2, 0, 6.28); ctx.fill(); continue;
+    }
+    if (p.kind === 'foam'){
+      const r = p.size*(1.4 - k*.6); ctx.fillStyle = `rgba(255,255,255,${.85*k})`; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.28); ctx.fill();
+      ctx.fillStyle = `rgba(210,225,240,${.6*k})`; ctx.beginPath(); ctx.arc(p.x + r*.3, p.y + r*.3, r*.5, 0, 6.28); ctx.fill(); continue;
+    }
+    if (p.kind === 'plank'){
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = '#c98a48'; ctx.strokeStyle = '#5a3418'; ctx.lineWidth = 1.5;
+      ctx.fillRect(-p.size*2.2, -p.size*.45, p.size*4.4, p.size*.9); ctx.strokeRect(-p.size*2.2, -p.size*.45, p.size*4.4, p.size*.9);
+      ctx.restore(); continue;
+    }
     if (p.kind === 'spark'){
       ctx.save(); ctx.globalCompositeOperation = 'lighter';
       ctx.strokeStyle = `rgba(255,${Math.round(200+55*k)},${Math.round(80+120*k)},${k})`; ctx.lineWidth = p.size;
@@ -1317,7 +1397,8 @@ function step(dt){
   }
   for (let i=debris.length-1;i>=0;i--){
     const p = debris[i]; p.life += dt; p.vy += p.g*k; p.x += p.vx*k; p.y += p.vy*k; p.vx *= .98; p.rot += p.vr*k;
-    if ((p.kind==='shard' || p.kind==='splinter') && p.vy > 0 && p.y >= p.land){ floorStain(p.x, p.land, p.size, p.kind); debris.splice(i,1); continue; }
+    if ((p.kind==='shard' || p.kind==='splinter' || p.kind==='plank' || p.kind==='scale') && p.vy > 0 && p.y >= p.land){ floorStain(p.x, p.land, p.kind==='plank' ? p.size*.6 : p.size, p.kind==='plank' ? 'splinter' : p.kind==='scale' ? 'scale' : p.kind); debris.splice(i,1); continue; }
+    if (p.kind==='water' && p.vy > 0 && p.y >= p.land){ debris.splice(i,1); continue; }
     if (p.life >= p.max) debris.splice(i,1);
   }
   for (let i=splats.length-1;i>=0;i--){ splats[i].a -= dt*.35; if (splats[i].a <= 0) splats.splice(i,1); }

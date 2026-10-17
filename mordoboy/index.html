@@ -104,7 +104,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="wallet"><button class="demo" id="musM" type="button">♪ вкл</button><button class="demo" id="demoStars" type="button">+100 ★ тест</button></div>
     </div>
     <h1 class="greet">Кому набьём ебало?</h1>
-    <p class="sub"><span style="opacity:.6">v14 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
+    <p class="sub"><span style="opacity:.6">v15 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
     <div class="soonBanner" id="soonBanner">🔥 Скоро в ринге: босс <b>Поганец</b></div>
     <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
     <div class="tabs" role="tablist">
@@ -145,7 +145,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 14;
+const GAME_VERSION = 15;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -174,6 +174,32 @@ function loadTex(src, cb){ if (!src) return; const im = new Image(); im.onload =
 for (const k in TEXTURES.faces) loadTex(TEXTURES.faces[k], im => tex.faces[k] = im);
 for (const k in TEXTURES.weapons) loadTex(TEXTURES.weapons[k], im => tex.weapons[k] = im);
 loadTex(TEXTURES.background, im => tex.background = im);
+
+/* ===== РЕПЛИКИ =====
+   Меняй фразы как хочешь. ko — коронка при нокауте, idle — когда отдыхает, win — если не добил.
+   Общие фразы (hurt, crit, low…) говорят все, свои — только этот персонаж. */
+const PHRASES = {
+  hurt:  ['Ай, бля!', 'За что?!', 'Ну ты чё?!', 'Не по лицу!', 'Мама...', 'Сука, больно!', 'Я тебя запомнил', 'Эй, полегче!', 'Ой-ой-ой', 'Это незаконно!'],
+  crit:  ['Ёбаный рот!', 'Зубы, мои зубы!', 'Звёздочки вижу...', 'Ох, ёпта!'],
+  weapon:{ pan:['Сковородкой?! Серьёзно?!', 'БОНГ, сука!'], brick:['Кирпичом-то за что?!', 'Ты стройку ограбил?!'],
+           bat:['Ты чё, бейсболист?!', 'Убери биту!'], crowbar:['Лом?! Ты ебанутый?!', 'Против лома нет приёма...'] },
+  idle:  ['Это всё?', 'Устал, слабак?', 'Бьёшь как девочка', 'Я даже не вспотел', 'Ну давай, давай!', 'Скучно...'],
+  low:   ['Хватит, хватит!', 'Всё, я сдаюсь!', 'Позовите маму...', 'Лежачего не бьют!'],
+  win:   ['Ха! Слабак!', 'Иди тренируйся', 'И это всё, что ты можешь?'],
+  block: ['Не пробьёшь!', 'Мимо!', 'Учись, сопляк'],
+  chars: {
+    ilya:     { ko:'С Новым годом, блять...',       idle:['Хо-хо-хо, слабак!', 'Подарков не будет!'] },
+    dasha:    { ko:'Сосиски остынут...',            idle:['Сосиски сами себя не съедят', 'Мне на торпеду пора'] },
+    tagiev:   { ko:'Дайте полежать...',             idle:['Я тут прилёг, не мешай', 'Подушку не трогай'] },
+    spartak:  { ko:'Печенька раскрошилась...',      idle:['Спартак — чемпион!', 'Печенёк не крошится'] },
+    berdysh:  { ko:'Очки... где мои очки?!',        idle:['Иди сюда, малой', 'Ты на кого полез?'] },
+    dimon:    { ko:'Уточка, спаси...',              idle:['Валет всегда при козырях', 'Кря, сука'] },
+    zuban:    { ko:'Мои зубы!',                     idle:['Зубан не сдаётся', 'Зубы на месте, бей ещё'] },
+    vitya:    { ko:'Благодарин...',                 idle:['Благодарин за разминку!', 'Это массаж, что ли?'] },
+    vadik:    { ko:'Я на автобус опоздаю...',       idle:['Вадик ещё стоит!', 'Мой автобус через минуту'] },
+    poganets: { ko:'Это ещё не конец...',           idle:['Поганец непобедим!', 'Ну всё, ты попал!'] },
+  }
+};
 
 /* ===== Персонажи и оружие ===== */
 const SKINS = [[236,196,164],[218,168,132],[184,132,98],[132,92,66],[150,172,104]];
@@ -373,6 +399,7 @@ function startFight(){
   for (const a of [drips, parts, splats, floats, swings, debris, bursts, rings]) a.length = 0;
   const g = floorL.g; g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='rgba(0,0,0,.5)'; g.fillRect(0,0,W,H); g.restore();
   rec = {x:0,y:-40,a:0,vx:0,vy:6,va:0,sq:0,vsq:0}; koT = -1; sprLayerFor = null; timeLeft = opp.c.time || FIGHT_TIME;
+  say = null; saidLow = false; idleSaid = false;
   opp.bs = opp.c.boss ? { guard:false, next: performance.now() + 2500, until:0 } : null; combo = 0; lastHit = performance.now(); stun = 0; flash = 0;
   $('result').hidden = true; $('status').textContent = 'Хуярь по ебалу'; $('status').className = 'status';
   $('chip').textContent = weapById(S.weapon).name;
@@ -391,12 +418,12 @@ function endFight(win){
     } else {
     const bonus = 30 + Math.round(opp.maxHp*.5); S.coins += bonus;
     $('resT').textContent = 'ЕБАЛО НАБИТО';
-    $('resP').textContent = `+${bonus} монет. ${opp.name} огрёб уже ${kos(opp.id)} раз.`;
+    $('resP').textContent = `«${own('ko') || 'Всё...'}» +${bonus} монет. ${opp.name} огрёб уже ${kos(opp.id)} раз.`;
     }
     sndBell(); haptic('ko');
   } else {
     $('resT').textContent = 'НЕ ДОБИЛ';
-    $('resP').textContent = opp.c.boss ? 'Поганец устоял. Не бей, когда он закрылся перчатками, прокачай удар и возьми что потяжелее.' : `${opp.name} отдышался и ржёт тебе в лицо. Тапай быстрее или возьми что потяжелее.`;
+    $('resP').textContent = `«${pick(PHRASES.win)}» ` + (opp.c.boss ? 'Поганец устоял. Не бей, когда он закрылся перчатками, прокачай удар и возьми что потяжелее.' : `${opp.name} отдышался и ржёт тебе в лицо. Тапай быстрее или возьми что потяжелее.`);
     haptic('heavy');
   }
   $('result').hidden = false; save();
@@ -439,6 +466,38 @@ function deb(kind, x, y, n, o){
     const a = (o.dir ?? -Math.PI/2) + rnd(-(o.spread??1.2), o.spread??1.2), sp = rnd(o.smin??2, o.smax??6);
     debris.push({kind, x, y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, g:o.g??.3, life:0, max:rnd(o.lmin??.5, o.lmax??1), size:rnd(o.rmin??2, o.rmax??4), rot:rnd(0,6.28), vr:rnd(-.3,.3), land:FLOOR+rnd(6,78), col:o.col});
   }
+}
+let say = null, lastSay = 0, saidLow = false, idleSaid = false;
+function speak(txt, dur=1.6, force=false){
+  const now = performance.now();
+  if (!force && (now - lastSay < 1300 || (say && say.t < say.dur*.6))) return;
+  say = { txt, t:0, dur }; lastSay = now;
+}
+function own(kind){ return (PHRASES.chars[opp.id] || {})[kind]; }
+function pickLine(kind){ const mine = own(kind); const pool = (PHRASES[kind] || []).concat(Array.isArray(mine) ? mine : []); return pool.length ? pick(pool) : ''; }
+function drawSay(){
+  if (!say || !opp) return;
+  const a = say.t < .12 ? say.t/.12 : say.t > say.dur - .25 ? Math.max(0, (say.dur - say.t)/.25) : 1;
+  const E = opp.ell, [hx, hy] = toScreen(E.cx, E.cy - E.ry);
+  ctx.save(); ctx.globalAlpha = a;
+  ctx.font = '17px "Russo One", sans-serif';
+  const words = say.txt.split(' '), lines = []; let cur = '';
+  for (const w of words){ const tr = cur ? cur + ' ' + w : w; if (ctx.measureText(tr).width > 190 && cur){ lines.push(cur); cur = w; } else cur = tr; }
+  lines.push(cur);
+  const lw = Math.max(...lines.map(l => ctx.measureText(l).width)), bw = lw + 26, bh = lines.length*21 + 16;
+  const side = hx > W/2 ? -1 : 1;
+  let bx = Math.min(W - bw - 8, Math.max(8, hx + side*30 - (side < 0 ? bw : 0))), by = Math.max(70, hy - bh - 18);
+  const pop = say.t < .12 ? .8 + .2*(say.t/.12) : 1;
+  ctx.translate(bx + bw/2, by + bh/2); ctx.scale(pop, pop); ctx.translate(-(bx + bw/2), -(by + bh/2));
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#1a0633'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx, by, bw, bh, 14) : ctx.rect(bx, by, bw, bh);
+  ctx.fill(); ctx.stroke();
+  const tx = Math.min(Math.max(hx, bx + 22), bx + bw - 22);
+  ctx.beginPath(); ctx.moveTo(tx - 10, by + bh - 1.5); ctx.lineTo(tx + 6, by + bh + 16); ctx.lineTo(tx + 8, by + bh - 1.5); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(tx - 10, by + bh); ctx.lineTo(tx + 6, by + bh + 16); ctx.lineTo(tx + 8, by + bh); ctx.stroke();
+  ctx.fillStyle = '#1a0633'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  lines.forEach((l, i) => ctx.fillText(l, bx + bw/2, by + 8 + 10.5 + i*21));
+  ctx.restore(); ctx.textBaseline = 'alphabetic';
 }
 function burst(x, y, txt, col, big){
   bursts.push({x, y, txt, col, t:0, rot:rnd(-.25,.25), big, spikes:Array.from({length:14},()=>rnd(.62,1))});
@@ -627,6 +686,7 @@ function hit(px, py){
     floats.push({x:px+rnd(-10,10), y:py, txt:'БЛОК!', t:0, crit:true});
     rings.push({x:px, y:py, t:0, col:'120,200,255', max:.25, r0:8, r1:50});
     rec.vx += rnd(-2,2); if (audio()){ tone(900,880,.15,.15,'square'); }
+    if (Math.random() < .35) speak(pickLine('block'));
     haptic('light'); return;
   }
 
@@ -681,8 +741,16 @@ function hit(px, py){
   side = -side;
   floats.push({x:sx+rnd(-10,10), y:sy+10, txt:'-'+dmg, t:0, crit});
   sndHit(Math.max(w, rd), crit, wp.id); haptic(crit || wp.mult>=5 ? 'heavy' : 'medium');
+  idleSaid = false;
+  if (opp.hp > 0){
+    if (!saidLow && opp.hp < opp.maxHp*.3){ saidLow = true; speak(opp.c.boss ? 'Ну всё, ты попал!' : pick(PHRASES.low), 1.8, true); }
+    else if (crit && Math.random() < .5) speak(pick(PHRASES.crit));
+    else if (wp.id !== 'fist' && Math.random() < .12) speak(pick(PHRASES.weapon[wp.id]));
+    else if (Math.random() < .14) speak(pick(PHRASES.hurt));
+  }
   if (opp.hp <= 0){
     opp.ko = true; koT = 0; stun = 3;
+    speak(own('ko') || 'Всё...', 2.4, true);
     const [kx,ky] = toScreen(0,20); bloodBurst(kx, ky, 0, -1, 40, 1); screenSplat(rnd(80,320), rnd(80,300), rnd(40,70));
     burst(W/2, 120, 'НОКАУТ!', '#ff2e4d', true);
     setTimeout(() => endFight(true), 1200);
@@ -1112,7 +1180,8 @@ function frame(now){
   let regenOn = false;
   if (mode === 'fight' && !opp.ko){
     timeLeft -= dt;
-    if (now - lastHit > IDLE_MS && opp.hp < opp.maxHp){ opp.hp = Math.min(opp.maxHp, opp.hp + opp.maxHp*opp.c.regen*dt); regenOn = true; }
+    if (now - lastHit > IDLE_MS && opp.hp < opp.maxHp){ opp.hp = Math.min(opp.maxHp, opp.hp + opp.maxHp*opp.c.regen*dt); regenOn = true;
+      if (!idleSaid && now - lastHit > 1100){ idleSaid = true; if (Math.random() < .7) speak(pickLine('idle'), 1.8); } }
     if (timeLeft <= 0){ timeLeft = 0; endFight(false); }
     const B = opp.bs;
     if (B){
@@ -1159,7 +1228,7 @@ function frame(now){
     ctx.fillStyle = f.crit ? '#ffc93c' : '#fff'; ctx.fillText(f.txt, f.x, f.y - f.t*60);
   }
   ctx.globalAlpha = 1;
-  drawBursts();
+  drawBursts(); drawSay();
   if (noEnergyT > 0){ noEnergyT--; ctx.font = '20px "Russo One", sans-serif'; ctx.lineWidth = 4; ctx.strokeStyle = '#1a0633'; ctx.strokeText('Сдох. Отдышись, боец', W/2, 60); ctx.fillStyle = '#33d6ff'; ctx.fillText('Сдох. Отдышись, боец', W/2, 60); }
   drawSplats();
   if (flash > 0){ ctx.save(); ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle = `rgba(${flashCol},${flash})`; ctx.fillRect(0,0,cv.width,cv.height); ctx.restore(); flash = Math.max(0, flash - dt*2.5); }
@@ -1217,6 +1286,7 @@ function step(dt){
     }
   }
   for (let i=swings.length-1;i>=0;i--){ swings[i].t += dt/(swings[i].w==='fist'?.24:.32); if (swings[i].t >= 1) swings.splice(i,1); }
+  if (say){ say.t += dt; if (say.t >= say.dur) say = null; }
   for (let i=floats.length-1;i>=0;i--){ floats[i].t += dt; if (floats[i].t > .8) floats.splice(i,1); }
   for (let i=bursts.length-1;i>=0;i--){ bursts[i].t += dt; if (bursts[i].t > .55) bursts.splice(i,1); }
   for (let i=rings.length-1;i>=0;i--){ rings[i].t += dt; if (rings[i].t > rings[i].max) rings.splice(i,1); }

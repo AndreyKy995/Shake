@@ -104,7 +104,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="wallet"><button class="demo" id="musM" type="button">♪ вкл</button><button class="demo" id="demoStars" type="button">+100 ★ тест</button></div>
     </div>
     <h1 class="greet">Кому набьём ебало?</h1>
-    <p class="sub"><span style="opacity:.6">v13 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
+    <p class="sub"><span style="opacity:.6">v14 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
     <div class="soonBanner" id="soonBanner">🔥 Скоро в ринге: босс <b>Поганец</b></div>
     <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
     <div class="tabs" role="tablist">
@@ -145,7 +145,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 13;
+const GAME_VERSION = 14;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -590,8 +590,9 @@ function musStep(i, t){
   if (s % 2 === 0 || fight) musNoise(t, .04, s % 4 === 2 ? .035 : .02, 'highpass', 8000);
 }
 function musTick(){ while (mus.next < AC.currentTime + .15){ musStep(mus.step, mus.next); mus.step++; mus.next += STEP; } }
+const MUSIC_ENABLED = false;   // фоновая музыка временно выключена; true — вернуть
 function startMusic(){
-  if (!S.music || mus.on || !audio()) return;
+  if (!MUSIC_ENABLED || !S.music || mus.on || !audio()) return;
   if (AC.state === 'suspended') AC.resume();
   if (!mus.gain){
     mus.gain = AC.createGain(); mus.gain.gain.value = .5; mus.gain.connect(AC.destination);
@@ -1360,6 +1361,7 @@ $('musF').onclick = e => { e.stopPropagation(); toggleMusic(); };
 $('musM').addEventListener('pointerdown', e => e.stopPropagation());
 $('musF').addEventListener('pointerdown', e => e.stopPropagation());
 musLabels();
+if (!MUSIC_ENABLED){ el('musM').hidden = true; el('musF').hidden = true; }
 el('soonBanner').hidden = !BOSS.soon;
 renderList(); show('menu'); requestAnimationFrame(frame); loadGlobal();
 if (document.fonts) document.fonts.ready.then(() => { buildArena(); buildBgCache(); if (mode === 'menu') renderList(); });

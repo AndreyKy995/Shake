@@ -49,6 +49,8 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 .card .buy.gold{color:#3a2400;background:linear-gradient(180deg,#ffe28a,var(--gold));box-shadow:0 3px 0 #9a6a10}
 .card.locked canvas{filter:grayscale(.75) brightness(.55)}
 .go{font-family:var(--display);font-size:21px;padding:15px;color:#fff;background:linear-gradient(180deg,#ff6a3d,var(--hot));box-shadow:0 5px 0 #7a0a22,0 0 30px -6px var(--hot);letter-spacing:.02em;text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.world{font-family:var(--display);font-size:14px;color:var(--ink);background:rgba(0,0,0,.35);padding:7px 12px;border-radius:12px;font-variant-numeric:tabular-nums}
+.world b{color:var(--gold)}
 .demo{font-family:var(--body);font-size:13px;white-space:nowrap;color:var(--cyan);background:rgba(0,0,0,.3);box-shadow:none;padding:5px 9px}
 
 /* бой */
@@ -94,7 +96,8 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="wallet"><button class="demo" id="musM" type="button">♪ вкл</button><button class="demo" id="demoStars" type="button">+100 ★ тест</button></div>
     </div>
     <h1 class="greet">Кому набьём ебало?</h1>
-    <p class="sub"><span style="opacity:.6">v10 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
+    <p class="sub"><span style="opacity:.6">v11 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
+    <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
     <div class="tabs" role="tablist">
       <button id="tabChars" role="tab" aria-selected="true" type="button">Ебальники</button>
       <button id="tabWeap" role="tab" aria-selected="false" type="button">Чем уебать</button>
@@ -109,7 +112,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="timer" id="timer">0:30</div>
       <div class="wallet"><button class="demo" id="musF" type="button">♪ вкл</button><span class="pill c"><span class="coin" aria-hidden="true"></span><b id="coins">0</b></span></div>
     </div>
-    <div class="opp"><span class="name" id="oppName">—</span><span class="cnt">набито: <b id="oppCnt">0</b></span></div>
+    <div class="opp"><span class="name" id="oppName">—</span><span class="cnt">набито: <b id="oppCnt">0</b><span id="oppAllWrap" hidden> · всеми: <b id="oppAll">0</b></span></span></div>
     <div class="bar hp" id="hpBar"><i id="hpFill"></i><span id="hpText"></span></div>
     <div class="stage">
       <canvas id="cv" aria-label="Ринг: тапай по ебалу"></canvas>
@@ -133,7 +136,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 10;
+const GAME_VERSION = 11;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -322,12 +325,14 @@ function startFight(){
   rec = {x:0,y:-40,a:0,vx:0,vy:6,va:0,sq:0,vsq:0}; koT = -1; timeLeft = FIGHT_TIME; combo = 0; lastHit = performance.now(); stun = 0; flash = 0;
   $('result').hidden = true; $('status').textContent = 'Хуярь по ебалу'; $('status').className = 'status';
   $('chip').textContent = weapById(S.weapon).name;
+  showGlobal();
   mode = 'fight'; show('fight');
 }
 function endFight(win){
   mode = 'result';
   if (win){
     S.kos[opp.id] = kos(opp.id) + 1;
+    addGlobal(opp.id);
     const bonus = 30 + Math.round(opp.maxHp*.5); S.coins += bonus;
     $('resT').textContent = 'ЕБАЛО НАБИТО';
     $('resP').textContent = `+${bonus} монет. ${opp.name} огрёб уже ${kos(opp.id)} раз.`;
@@ -1100,6 +1105,30 @@ function fightUI(regenOn){
 }
 
 let tab = 'chars';
+/* ===== Общий счётчик нокаутов всех игроков (Supabase) ===== */
+const SB_URL = 'https://kfojzfakvcmgqorknepm.supabase.co', SB_KEY = 'sb_publishable_WgerXfWNOQOAA4i7-pn6TQ_jOlDYdKD';
+const SB_H = { apikey: SB_KEY, 'Content-Type': 'application/json' };
+let GLOBAL = null;
+function showGlobal(){
+  if (!GLOBAL) return;
+  const total = Object.values(GLOBAL).reduce((a,b) => a + b, 0);
+  const w = document.getElementById('world'); w.hidden = false;
+  document.getElementById('worldTotal').textContent = total.toLocaleString('ru-RU');
+  if (opp){ document.getElementById('oppAllWrap').hidden = false; document.getElementById('oppAll').textContent = (GLOBAL[opp.id]||0).toLocaleString('ru-RU'); }
+}
+function loadGlobal(){
+  fetch(SB_URL + '/rest/v1/global_kos?select=char_id,count', { headers: SB_H })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(rows => { GLOBAL = {}; rows.forEach(r => GLOBAL[r.char_id] = +r.count); showGlobal(); if (mode === 'menu') renderList(); })
+    .catch(() => {});
+}
+function addGlobal(id){
+  fetch(SB_URL + '/rest/v1/rpc/add_ko', { method:'POST', headers: SB_H, body: JSON.stringify({ p_char: id }) })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(n => { GLOBAL = GLOBAL || {}; GLOBAL[id] = +n; showGlobal(); })
+    .catch(() => {});
+}
+setInterval(() => { if (!document.hidden && mode !== 'fight') loadGlobal(); }, 20000);
 // персонажи открываются по очереди за золото: следующий доступен, когда открыт предыдущий
 const prevChar = c => CHARS[CHARS.indexOf(c) - 1];
 const canUnlock = c => { const p = prevChar(c); return !p || S.chars.includes(p.id); };
@@ -1119,7 +1148,7 @@ function renderList(){
     card.className = 'card' + (selected ? ' sel' : '') + (owned ? '' : ' locked');
     card.style.setProperty('--c', it.col);
     const meta = isChar
-      ? `<span>набито: <b>${kos(it.id)}</b></span><span>HP <b>${Math.round(it.hp*Math.pow(1.25,kos(it.id)))}</b></span>`
+      ? `<span>набито: <b>${kos(it.id)}</b></span>` + (GLOBAL ? `<span>всеми: <b>${(GLOBAL[it.id]||0).toLocaleString('ru-RU')}</b></span>` : `<span>HP <b>${Math.round(it.hp*Math.pow(1.25,kos(it.id)))}</b></span>`)
       : `<span>${it.note}</span><span>урон <b>×${it.mult}</b></span>`;
     card.innerHTML = `<canvas width="240" height="240"></canvas>${!isChar && owned ? '' : ''}<div class="n">${it.name}</div><div class="m">${meta}</div>
       ${owned ? '' : buyBtn(it, isChar)}`;
@@ -1173,7 +1202,7 @@ $('musF').onclick = e => { e.stopPropagation(); toggleMusic(); };
 $('musM').addEventListener('pointerdown', e => e.stopPropagation());
 $('musF').addEventListener('pointerdown', e => e.stopPropagation());
 musLabels();
-renderList(); show('menu'); requestAnimationFrame(frame);
+renderList(); show('menu'); requestAnimationFrame(frame); loadGlobal();
 if (document.fonts) document.fonts.ready.then(() => { buildArena(); if (mode === 'menu') renderList(); });
 </script>
 

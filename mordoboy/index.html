@@ -94,7 +94,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="wallet"><button class="demo" id="musM" type="button">♪ вкл</button><button class="demo" id="demoStars" type="button">+100 ★ тест</button></div>
     </div>
     <h1 class="greet">Кому набьём ебало?</h1>
-    <p class="sub">Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
+    <p class="sub"><span style="opacity:.6">v9 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
     <div class="tabs" role="tablist">
       <button id="tabChars" role="tab" aria-selected="true" type="button">Ебальники</button>
       <button id="tabWeap" role="tab" aria-selected="false" type="button">Чем уебать</button>
@@ -131,6 +131,21 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 </div>
 
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script>
+/* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
+const GAME_VERSION = 9;
+(function(){
+  function check(){
+    fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
+      .then(r => r.text()).then(t => {
+        const m = t.match(/const GAME_VERSION = (\d+);/);
+        if (m && +m[1] > GAME_VERSION) location.replace(location.pathname + '?v=' + m[1]);
+      }).catch(() => {});
+  }
+  check();
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) check(); });
+})();
+</script>
 <script>
 /* ===== ТЕКСТУРЫ =====
    Вставь data:URI или путь к картинке. Пустая строка = рисуется кодом.

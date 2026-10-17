@@ -104,7 +104,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="wallet"><button class="demo" id="musM" type="button">♪ вкл</button><button class="demo" id="demoStars" type="button">+100 ★ тест</button></div>
     </div>
     <h1 class="greet">Кому набьём ебало?</h1>
-    <p class="sub"><span style="opacity:.6">v15 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
+    <p class="sub"><span style="opacity:.6">v16 · </span>Набивай ебальники, копи золото — открывай новых по очереди. Тянешь с ударами — он отдышится.</p>
     <div class="soonBanner" id="soonBanner">🔥 Скоро в ринге: босс <b>Поганец</b></div>
     <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
     <div class="tabs" role="tablist">
@@ -145,7 +145,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 15;
+const GAME_VERSION = 16;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -1370,7 +1370,7 @@ function renderList(){
     if (isChar && !it.boss && kos(it.id) >= 10){ const tg = document.createElement('span'); tg.className = 'tag'; tg.textContent = 'Постоянный клиент'; card.appendChild(tg); }
     const g = card.querySelector('canvas').getContext('2d');
     if (isChar){
-      const bruise = Math.min(.55, kos(it.id)*.05), key = it.id + ':' + bruise + ':' + (SPRITES[it.sprite]?.ready ? 1 : 0) + ':' + (it.boss && BOSS.soon ? 's' : '');
+      const bruise = 0, key = it.id + ':' + bruise + ':' + (SPRITES[it.sprite]?.ready ? 1 : 0) + ':' + (it.boss && BOSS.soon ? 's' : '');
       let pc = portraitCache[key];
       if (!pc){
         pc = document.createElement('canvas'); pc.width = pc.height = 240; const pg = pc.getContext('2d');

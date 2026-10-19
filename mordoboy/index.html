@@ -120,6 +120,34 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 @keyframes tap{50%{transform:translateY(8px) scale(.9)}}
 @media (prefers-reduced-motion:reduce){.tut .hand{animation:none}}
 
+/* живой ринг на главном экране */
+#paneRing{gap:8px;overflow:hidden}
+.ticker{position:relative;overflow:hidden;border-radius:10px;background:#0a0312;box-shadow:0 0 0 2px #3a1a5a inset,0 0 18px -6px #ff2e88;height:30px;flex:none}
+.tickerIn{position:absolute;top:0;left:0;white-space:nowrap;line-height:30px;font-family:var(--display);font-size:14px;color:#ffd1e8;text-shadow:0 0 8px #ff2e88;animation:tick 22s linear infinite;padding-left:100%}
+.tickerIn b{color:#fff27a;text-shadow:0 0 8px #ffc93c}
+@keyframes tick{to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){.tickerIn{animation:none;padding-left:10px}}
+.stageWrap{position:relative;flex:1;min-height:250px;border-radius:20px;overflow:hidden;background:#12051f;box-shadow:0 0 0 2px rgba(255,255,255,.07) inset,0 10px 30px -10px #000;touch-action:pan-y}
+#ringStage{display:block;width:100%;height:100%;cursor:pointer}
+.stageTop{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:center;pointer-events:none}
+.vsTag{font-family:var(--display);font-size:clamp(17px,5.2vw,24px);color:transparent;background:linear-gradient(180deg,#fff27a,var(--gold) 40%,var(--hot2) 75%,var(--hot));-webkit-background-clip:text;background-clip:text;filter:drop-shadow(0 2px 0 #3a0820) drop-shadow(0 0 10px rgba(0,0,0,.8));transform:rotate(-2deg)}
+.stageWrap .arrow{position:absolute;top:44%;transform:translateY(-50%);background:rgba(10,3,18,.55);backdrop-filter:blur(2px)}
+.arrow.sl{left:8px} .arrow.sr{right:8px}
+.stageBottom{position:absolute;left:0;right:0;bottom:0;padding:26px 10px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;background:linear-gradient(180deg,rgba(10,3,18,0),rgba(10,3,18,.85) 55%);pointer-events:none}
+.stageBottom .ringName{font-size:clamp(22px,7vw,30px);color:#fff;text-shadow:0 3px 0 #000,0 0 16px var(--hot)}
+.stageBottom .ringStats span{background:rgba(0,0,0,.55)}
+.taunt{position:absolute;left:50%;top:22%;transform:translateX(-50%);max-width:70%;background:#fff;color:#1a0633;font-family:var(--display);font-size:16px;padding:8px 14px;border-radius:14px;box-shadow:0 0 0 3px #1a0633,0 6px 18px rgba(0,0,0,.5);text-align:center;pointer-events:none;animation:pop .18s ease-out}
+.taunt::after{content:"";position:absolute;left:50%;bottom:-12px;border:8px solid transparent;border-top:12px solid #fff;transform:translateX(-50%)}
+@keyframes pop{from{transform:translateX(-50%) scale(.6)}}
+.go{position:relative;overflow:hidden;animation:goPulse 1.4s ease-in-out infinite}
+.go::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-60%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.45),transparent);animation:shine 2.6s ease-in-out infinite}
+.goGlove{display:inline-block;animation:punch 1.4s ease-in-out infinite}
+@keyframes goPulse{50%{box-shadow:0 5px 0 #7a0a22,0 0 44px -2px var(--hot)}}
+@keyframes shine{60%,100%{left:130%}}
+@keyframes punch{0%,60%,100%{transform:translateX(0) rotate(0)}70%{transform:translateX(10px) rotate(-12deg)}80%{transform:translateX(-2px)}}
+@media (prefers-reduced-motion:reduce){.go,.go::after,.goGlove{animation:none}}
+.weaponPlate{flex:none}
+
 /* бой */
 .timer{font-family:var(--display);font-size:24px;font-variant-numeric:tabular-nums;color:var(--gold);text-shadow:0 2px 0 #000}
 .timer.low{color:var(--hot);animation:pulse .5s infinite alternate}
@@ -168,22 +196,26 @@ button:disabled{opacity:.45;cursor:default;transform:none}
     </div>
 
     <div class="pane" id="paneRing">
-      <h1 class="greet">Кому набьём ебало?</h1>
+      <div class="ticker" aria-live="polite"><div class="tickerIn" id="ticker"></div></div>
       <div class="soonBanner newBanner" id="newBanner" hidden></div>
-      <div class="soonBanner" id="soonBanner">🔥 Скоро в ринге: босс <b>Грицко-Ёпт</b></div>
-      <div class="ringCard" id="ringCard">
-        <button class="arrow" id="prevOpp" type="button" aria-label="Предыдущий соперник">‹</button>
-        <canvas id="ringPortrait" width="600" height="600" aria-label="Текущий соперник"></canvas>
-        <button class="arrow" id="nextOpp" type="button" aria-label="Следующий соперник">›</button>
+      <div class="soonBanner" id="soonBanner" hidden></div>
+      <div class="stageWrap" id="stageWrap">
+        <canvas id="ringStage" aria-label="Ринг: текущий соперник. Тапни по нему, листай свайпом"></canvas>
+        <div class="stageTop"><span class="vsTag">Кому набьём ебало?</span></div>
+        <button class="arrow sl" id="prevOpp" type="button" aria-label="Предыдущий соперник">‹</button>
+        <button class="arrow sr" id="nextOpp" type="button" aria-label="Следующий соперник">›</button>
+        <div class="taunt" id="taunt" hidden></div>
+        <div class="stageBottom">
+          <div class="ringName" id="ringName">—</div>
+          <div class="ringStats" id="ringStats"></div>
+        </div>
       </div>
-      <div class="ringName" id="ringName">—</div>
-      <div class="ringStats" id="ringStats"></div>
       <button class="weaponPlate" id="weaponPlate" type="button">
         <canvas id="ringWeapon" width="192" height="192" aria-hidden="true"></canvas>
         <span class="wpText"><span class="wpLabel">В руке</span><b id="ringWeaponName">Кулаки</b><span id="ringWeaponDmg" class="wpDmg"></span></span>
         <span class="wpChange">Сменить ›</span>
       </button>
-      <button class="go" id="go" type="button">В БОЙ</button>
+      <button class="go" id="go" type="button"><span class="goGlove">🥊</span> В БОЙ</button>
       <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
     </div>
 
@@ -244,7 +276,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 25;
+const GAME_VERSION = 26;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -1415,7 +1447,7 @@ function frame(now){
   const t = now/1000;
   S.energy = Math.min(enMax(), S.energy + regenEn()*dt);
   saveT += dt; if (saveT > 2){ saveT = 0; save(); }
-  if (mode === 'menu'){ menuWallet(); updateDots(); requestAnimationFrame(frame); return; }
+  if (mode === 'menu'){ menuWallet(); updateDots(); if (pane === 'ring' && !document.hidden) drawStage(t); requestAnimationFrame(frame); return; }
   if (!vw || !cv.width) resize();
 
   let regenOn = false;
@@ -1567,7 +1599,7 @@ let GLOBAL = null;
 function showGlobal(){
   if (!GLOBAL) return;
   const total = Object.values(GLOBAL).reduce((a,b) => a + b, 0);
-  const w = document.getElementById('world'); w.hidden = false;
+  const w = document.getElementById('world'); w.hidden = true;
   document.getElementById('worldTotal').textContent = total.toLocaleString('ru-RU');
   if (opp){ document.getElementById('oppAllWrap').hidden = false; document.getElementById('oppAll').textContent = (GLOBAL[opp.id]||0).toLocaleString('ru-RU'); }
 }
@@ -1676,19 +1708,90 @@ function onCard(it, isChar, st){
 }
 function renderBanner(){
   const soon = CHARS.filter(c => c.soon);
-  el('newBanner').hidden = !soon.length;
-  if (soon.length) setUI('newBanner','html', '🔜 Скоро в ринге: ' + soon.map(c => `<b>${c.name}</b>`).join(' и '));
-  const b = el('soonBanner');
+  const news = [];
+  if (soon.length) news.push('🔜 Скоро в ринге: ' + soon.map(c => `<b>${c.name}</b>`).join(' и '));
   const html = BOSS.soon ? '🔥 Скоро в ринге: босс <b>Грицко-Ёпт</b>'
     : bossOpen() ? (kos(BOSS.id) ? `👹 <b>Грицко-Ёпт</b> огрёб ${kos(BOSS.id)} раз. Ещё?` : '👹 Босс <b>Грицко-Ёпт</b> открыт! Найди его во вкладке «Ебальники»')
     : `👹 Новый босс <b>Грицко-Ёпт</b>! Набей ещё ${Math.max(0, BOSS.need - totalKos())} ебальников, чтобы открыть`;
-  setUI('soonBanner','html', html);
+  news.push(html);
+  const c = charById(S.sel);
+  news.push(`🥊 Сегодня на ринге: <b>${c.name}</b>`);
+  if (GLOBAL) news.push(`🌍 Всего набито ебальников всеми: <b>${fmt(Object.values(GLOBAL).reduce((a,b) => a+b, 0))}</b>`);
+  const top = [...CHARS, BOSS].filter(x => kos(x.id)).sort((a,b) => kos(b.id) - kos(a.id))[0];
+  if (top) news.push(`🩸 Твой любимый ебальник: <b>${top.name}</b> — ${kos(top.id)} раз`);
+  setUI('ticker','html', news.join('&nbsp;&nbsp;&nbsp;★&nbsp;&nbsp;&nbsp;'));
 }
+/* --- живой ринг --- */
+const stageCv = document.getElementById('ringStage'), stageG = stageCv.getContext('2d');
+const stageCache = {};
+let stageW = 0, stageH = 0, stageD = 1, stageJump = 0, stageSwap = 0, stageDir = 0, tauntT = 0;
+function sizeStage(){
+  const r = stageCv.getBoundingClientRect(); if (!r.width) return;
+  const d = Math.min(2, window.devicePixelRatio || 1);
+  if (r.width === stageW && r.height === stageH && d === stageD) return;
+  stageW = r.width; stageH = r.height; stageD = d;
+  stageCv.width = Math.round(stageW*d); stageCv.height = Math.round(stageH*d);
+}
+function stageChar(c){   // персонаж в мировых координатах ринга, рисуется один раз
+  const key = c.id + ':' + (SPRITES[c.sprite]?.ready ? 1 : 0);
+  if (stageCache[key]) return stageCache[key];
+  const k = 2, cv2 = document.createElement('canvas'); cv2.width = W*k; cv2.height = H*k;
+  const g = cv2.getContext('2d'); g.imageSmoothingQuality = 'high'; g.scale(k,k);
+  const o = makeOpp(c);
+  if (o.sprite){ if (!o.sprite.ready) return cv2; drawSpriteChar(g, o, {x:HX, y:HY, a:0}, null); }
+  else { const keep = ctx; ctx = g; drawBody(); ctx = keep; drawHead(g, o, {x:HX, y:HY, a:0}, null); }
+  return stageCache[key] = cv2;
+}
+function drawStage(t){
+  if (!stageW) { sizeStage(); if (!stageW) return; }
+  const g = stageG, d = stageD;
+  const s = Math.max(stageW/W, stageH/H) * .95, ox = (stageW - W*s)/2, oy = stageH - H*s + 20*s;
+  g.setTransform(d,0,0,d,0,0);
+  g.fillStyle = '#12051f'; g.fillRect(0,0,stageW,stageH);
+  g.setTransform(d*s,0,0,d*s,d*ox,d*oy);
+  const keep = ctx; ctx = g;
+  if (!tex.background) g.drawImage(arena.c, AX, 0, AW, H);
+  drawArena(t); drawRingStatic();
+  ctx = keep;
+  // персонаж: дыхание, подпрыгивание от тычка, смена со сдвигом
+  const c = charById(S.sel), img = stageChar(c);
+  stageJump = Math.max(0, stageJump - 1/60*3); stageSwap = Math.max(0, stageSwap - 1/60*5);
+  const breathe = Math.sin(t*2.2), jump = Math.sin(stageJump*Math.PI)*-18, slide = stageDir*stageSwap*60;
+  g.save(); g.globalAlpha = 1 - stageSwap*.8;
+  const CK = c.boss ? .8 : .72, py = FLOOR + 40;   // персонаж меньше, чтобы был виден ринг
+  g.translate(HX + slide, py); g.rotate(Math.sin(t*1.3)*.015 + stageJump*.06*Math.sin(t*40)); g.scale(CK*(1 + breathe*.006), CK*(1 - breathe*.006));
+  g.translate(-HX, -py + jump + breathe*2);
+  g.drawImage(img, 0, 0, W, H);
+  g.restore();
+  // контровой свет прожекторов поверх
+  g.save(); g.globalCompositeOperation = 'lighter';
+  const rim = g.createLinearGradient(0,0,W,0); rim.addColorStop(0,'rgba(255,46,140,.16)'); rim.addColorStop(.3,'rgba(255,46,140,0)'); rim.addColorStop(.7,'rgba(51,214,255,0)'); rim.addColorStop(1,'rgba(51,214,255,.16)');
+  g.fillStyle = rim; g.fillRect(-200,0,W+400,H); g.restore();
+  // виньетка
+  g.setTransform(d,0,0,d,0,0);
+  const vg = g.createRadialGradient(stageW/2, stageH*.42, stageW*.3, stageW/2, stageH*.45, stageW*.95);
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(8,0,16,.6)'); g.fillStyle = vg; g.fillRect(0,0,stageW,stageH);
+  if (tauntT && performance.now() > tauntT){ el('taunt').hidden = true; tauntT = 0; }
+}
+function stageTaunt(){
+  const c = charById(S.sel), mine = (PHRASES.chars[c.id] || {}).idle || [];
+  const pool = mine.concat(PHRASES.idle, ['Ну давай, подходи!', 'Чё смотришь?', 'Тронь ещё раз!']);
+  const t = el('taunt'); t.textContent = pick(pool); t.hidden = false; t.style.animation = 'none'; t.offsetWidth; t.style.animation = '';
+  tauntT = performance.now() + 1900; stageJump = 1;
+  if (audio()){ tone(220,140,.12,.25,'triangle'); }
+  haptic('light');
+}
+let swipeX = null;
+stageCv.addEventListener('pointerdown', e => { swipeX = e.clientX; });
+stageCv.addEventListener('pointerup', e => {
+  if (swipeX === null) return; const dx = e.clientX - swipeX; swipeX = null;
+  if (Math.abs(dx) > 40 && ownedChars().length > 1) cycleOpp(dx < 0 ? 1 : -1); else stageTaunt();
+});
+addEventListener('resize', () => { if (pane === 'ring') sizeStage(); });
 function renderRing(){
   renderBanner();
   const c = charById(S.sel), w = weapById(S.weapon);
-  const pc = el('ringPortrait'); pc.style.setProperty('--c', c.col);
-  const g = pc.getContext('2d'); g.imageSmoothingQuality = 'high'; g.clearRect(0,0,600,600); g.drawImage(getPortrait(c), 0, 0, 600, 600);
+  sizeStage();
   setUI('ringName','text', c.name);
   el('ringStats').innerHTML = `<span>❤ <b>${fmt(hpOf(c))}</b></span><span>⏱ <b>${c.time || FIGHT_TIME}</b> сек</span><span>набито: <b>${kos(c.id)}</b></span>` + (GLOBAL ? `<span>всеми: <b>${fmt(GLOBAL[c.id]||0)}</b></span>` : '');
   const wg = el('ringWeapon').getContext('2d'); wg.setTransform(2,0,0,2,0,0); wg.clearRect(0,0,96,96); drawWeapon(wg, w.id, 48, 50, -0.5, w.id==='fist' ? .62 : .37);
@@ -1723,12 +1826,13 @@ function showPane(p){
   for (const [id, key] of [['tbRing','ring'],['tbChars','chars'],['tbWeap','weap'],['tbUp','up']]) el(id).setAttribute('aria-selected', key === p);
   renderMenu();
   const pe = el({ring:'paneRing',chars:'paneChars',weap:'paneWeap',up:'paneUp'}[p]); pe.scrollTop = 0;
+  if (p === 'ring') requestAnimationFrame(() => { stageW = 0; sizeStage(); });
 }
 const setTab = t => showPane(t);
 function cycleOpp(d){
   const list = ownedChars(); if (list.length < 2) return;
   const i = list.findIndex(c => c.id === S.sel);
-  S.sel = list[(i + d + list.length) % list.length].id; save(); renderRing();
+  S.sel = list[(i + d + list.length) % list.length].id; save(); stageDir = d; stageSwap = 1; el('taunt').hidden = true; renderRing();
 }
 function goMenu(){ mode = 'menu'; paused = false; show('menu'); showPane('ring'); }
 

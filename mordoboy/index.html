@@ -50,10 +50,14 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 .card.boss{box-shadow:0 0 0 2px #ff2e4d inset,0 0 26px -6px #ff2e4d,0 4px 0 #120624}
 .card.boss.sel{box-shadow:0 0 0 3px #ffc93c inset,0 0 30px -4px #ff2e4d,0 4px 0 #120624}
 .card .tag.boss{background:#ff2e4d;color:#fff}
+.card.soonCard{box-shadow:0 0 0 2px var(--cyan) inset,0 0 22px -8px var(--cyan),0 4px 0 #120624}
+.card .tag.soon{background:var(--cyan);color:#06243a}
 .card.locked canvas{filter:grayscale(.75) brightness(.55)}
 .go{font-family:var(--display);font-size:24px;padding:16px;letter-spacing:.06em!important;color:#fff;background:linear-gradient(180deg,#ff6a3d,var(--hot));box-shadow:0 5px 0 #7a0a22,0 0 30px -6px var(--hot);letter-spacing:.02em;text-shadow:0 2px 0 rgba(0,0,0,.3)}
 .soonBanner{font-family:var(--display);font-size:14px;color:#fff;background:linear-gradient(90deg,#7a0a22,#ff2e4d 60%,#ff7a2e);padding:8px 12px;border-radius:12px;box-shadow:0 3px 0 #3a0820;animation:soonPulse 1.6s ease-in-out infinite}
 .soonBanner b{color:var(--gold)}
+.newBanner{background:linear-gradient(90deg,#0b4a6a,#1fa3d6 60%,#33d6ff);color:#fff;box-shadow:0 3px 0 #06243a;animation:none}
+.newBanner b{color:#fff27a}
 @keyframes soonPulse{50%{filter:brightness(1.18)}}
 @media (prefers-reduced-motion:reduce){.soonBanner{animation:none}}
 .card .buy.soonBtn{color:#fff;background:linear-gradient(180deg,#ff6a3d,#ff2e4d);box-shadow:0 3px 0 #7a0a22;opacity:1}
@@ -165,7 +169,8 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 
     <div class="pane" id="paneRing">
       <h1 class="greet">Кому набьём ебало?</h1>
-      <div class="soonBanner" id="soonBanner">🔥 Скоро в ринге: босс <b>Поганец</b></div>
+      <div class="soonBanner newBanner" id="newBanner" hidden></div>
+      <div class="soonBanner" id="soonBanner">🔥 Скоро в ринге: босс <b>Грицко-Ёпт</b></div>
       <div class="ringCard" id="ringCard">
         <button class="arrow" id="prevOpp" type="button" aria-label="Предыдущий соперник">‹</button>
         <canvas id="ringPortrait" width="600" height="600" aria-label="Текущий соперник"></canvas>
@@ -239,7 +244,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 23;
+const GAME_VERSION = 24;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -291,7 +296,9 @@ const PHRASES = {
     zuban:    { ko:'Мои зубы!',                     idle:['Зубан не сдаётся', 'Зубы на месте, бей ещё'] },
     vitya:    { ko:'Благодарин...',                 idle:['Благодарин за разминку!', 'Это массаж, что ли?'] },
     vadik:    { ko:'Я на автобус опоздаю...',       idle:['Вадик ещё стоит!', 'Мой автобус через минуту'] },
-    poganets: { ko:'Это ещё не конец...',           idle:['Поганец непобедим!', 'Ну всё, ты попал!'] },
+    senatov:  { ko:'Сенат распущен...',             idle:['Вася в деле!', 'Сенатов не сдаётся'] },
+    syavka:   { ko:'Бутылочку бы...',               idle:['Где моя бутылочка?', 'Сявка не падает!'] },
+    poganets: { ko:'Это ещё не конец...',           idle:['Грицко-Ёпт непобедим!', 'Ну всё, ты попал!'] },
   }
 };
 
@@ -305,6 +312,8 @@ const CHARS = [
   {id:'zuban',    name:'Зубан',             gold:6000,  hp:320, regen:.10, skin:0, hair:'#3a3028', hairH:0, nose:1,  mus:false, beard:false, col:'#33d6ff', sprite:'zuban'},
   {id:'vitya',    name:'Витюшка «Благодарин»', gold:12000, hp:360, regen:.11, skin:0, hair:'#4a2e1e', hairH:0, nose:-1, mus:false, beard:false, col:'#b46bff', sprite:'vitya'},
   {id:'vadik',    name:'Вадик',             gold:20000, hp:400, regen:.12, skin:0, hair:'#5a3a1e', hairH:0, nose:1,  mus:false, beard:false, col:'#ff7a2e', sprite:'vadik'},
+  {id:'senatov',  name:'Вася Сенатов',       gold:30000, hp:440, regen:.12, skin:1, hair:'#3a2a1c', hairH:20, nose:1,  mus:false, beard:false, col:'#33d6ff', soon:true},
+  {id:'syavka',   name:'Сявка «Бутылочник»', gold:45000, hp:480, regen:.12, skin:2, hair:'#2b2b2b', hairH:-10, nose:-1, mus:true,  beard:true,  col:'#5cf08a', soon:true},
 ];
 
 /* ===== Рисованные персонажи (картинка + повреждения поверх) =====
@@ -351,7 +360,7 @@ const WEAPONS = [
 ];
 /* ===== БОСС =====
    Картинки пока нет — рисуется кодом. Когда будет картинка: добавить её в SPRITES и прописать sprite:'poganets'. */
-const BOSS = {id:'poganets', name:'Поганец', boss:true, hp:2600, grow:1.15, time:45, regen:.04, skin:0, hair:'#111111', hairH:-30, nose:-1, mus:true, beard:true, col:'#ff2e4d',
+const BOSS = {id:'poganets', name:'Грицко-Ёпт', boss:true, hp:2600, grow:1.15, time:45, regen:.04, skin:0, hair:'#111111', hairH:-30, nose:-1, mus:true, beard:true, col:'#ff2e4d',
               need:10, reward:3000, rewardStars:5,
               sprite:'poganets', soon:false};   // soon:true — снова спрятать босса за «скоро»
 const charById = id => CHARS.find(c => c.id === id) || (id === BOSS.id ? BOSS : undefined);
@@ -520,7 +529,7 @@ function endFight(win){
     addGlobal(opp.id);
     if (opp.c.boss){
       const bonus = opp.c.reward + 500*(kos(opp.id)-1); S.coins += bonus; S.stars += opp.c.rewardStars;
-      $('resT').textContent = 'ПОГАНЕЦ ПОВЕРЖЕН';
+      $('resT').textContent = 'ГРИЦКО-ЁПТ ПОВЕРЖЕН';
       $('resP').textContent = `+${bonus.toLocaleString('ru-RU')} монет и +${opp.c.rewardStars} ★. Босс огрёб уже ${kos(opp.id)} раз и вернётся злее.`;
     } else {
     const bonus = 30 + Math.round(opp.maxHp*.5); S.coins += bonus;
@@ -530,7 +539,7 @@ function endFight(win){
     sndBell(); haptic('ko');
   } else {
     $('resT').textContent = 'НЕ ДОБИЛ';
-    $('resP').textContent = `«${pick(PHRASES.win)}» ` + (opp.c.boss ? 'Поганец устоял. Не бей, когда он закрылся перчатками, прокачай удар и возьми что потяжелее.' : `${opp.name} отдышался и ржёт тебе в лицо. Тапай быстрее или возьми что потяжелее.`);
+    $('resP').textContent = `«${pick(PHRASES.win)}» ` + (opp.c.boss ? 'Грицко-Ёпт устоял. Не бей, когда он закрылся перчатками, прокачай удар и возьми что потяжелее.' : `${opp.name} отдышался и ржёт тебе в лицо. Тапай быстрее или возьми что потяжелее.`);
     haptic('heavy');
   }
   el('nextFight').hidden = ownedChars().length < 2;
@@ -1539,7 +1548,7 @@ function fightUI(regenOn){
   setUI('oppName','text', opp.name); setUI('oppCnt','text', String(kos(opp.id)));
   setUI('hpFill','width', (opp.hp/opp.maxHp*100).toFixed(1) + '%'); setUI('hpText','text', Math.ceil(opp.hp) + ' / ' + opp.maxHp);
   setUI('hpBar','class', 'bar hp' + (regenOn ? ' regen' : ''));
-  if (mode === 'fight'){ setUI('status','text', opp.bs ? (opp.hp < opp.maxHp*.3 ? 'ПОГАНЕЦ В ЯРОСТИ' : 'Бей, пока не закрылся') : regenOn ? 'Отдыхает, сука. Бей!' : 'Хуярь по ебалу'); setUI('status','class', 'status' + (regenOn ? ' warn' : '')); }
+  if (mode === 'fight'){ setUI('status','text', opp.bs ? (opp.hp < opp.maxHp*.3 ? 'ГРИЦКО-ЁПТ В ЯРОСТИ' : 'Бей, пока не закрылся') : regenOn ? 'Отдыхает, сука. Бей!' : 'Хуярь по ебалу'); setUI('status','class', 'status' + (regenOn ? ' warn' : '')); }
   setUI('enFill','width', (S.energy/enMax()*100).toFixed(1) + '%'); setUI('enText','text', '⚡ ' + Math.floor(S.energy) + ' / ' + enMax());
   const mult = 1 + Math.min(combo,40)/20;
   setUI('combo','text', (combo > 2 && performance.now()-lastHit < 600) ? 'КОМБО ×' + mult.toFixed(2) : '');
@@ -1575,7 +1584,8 @@ setInterval(() => { if (!document.hidden && mode !== 'fight') loadGlobal(); }, 2
 const prevChar = c => CHARS[CHARS.indexOf(c) - 1];
 const canUnlock = c => { const p = prevChar(c); return !p || S.chars.includes(p.id); };
 function getPortrait(it){
-  const key = it.id + ':' + (SPRITES[it.sprite]?.ready ? 1 : 0) + ':' + (it.boss && BOSS.soon ? 's' : '');
+  const isSoon = it.soon || (it.boss && BOSS.soon);
+  const key = it.id + ':' + (SPRITES[it.sprite]?.ready ? 1 : 0) + ':' + (isSoon ? 's' : '');
   let pc = portraitCache[key];
   if (pc) return pc;
   pc = document.createElement('canvas'); pc.width = pc.height = 480; const pg = pc.getContext('2d'); pg.imageSmoothingQuality = 'high';
@@ -1584,7 +1594,7 @@ function getPortrait(it){
   if (o.sprite) drawSpriteChar(pg, o, {x:200 - o.ell.cx, y:210 - o.ell.cy*.5, a:0}, null);
   else { drawHead(pg, o, {x:200, y:210, a:0}, null); if (it.boss) drawHorns(pg, o, {x:0, y:-26, a:0}); }
   pg.restore();
-  if (it.boss && BOSS.soon){   // анонс: тёмный силуэт и знак вопроса
+  if (isSoon){   // анонс: тёмный силуэт и знак вопроса
     pg.globalCompositeOperation = 'source-atop'; pg.fillStyle = '#0d0418'; pg.fillRect(0,0,480,480);
     pg.globalCompositeOperation = 'source-over';
     pg.font = '172px "Russo One", sans-serif'; pg.textAlign = 'center'; pg.textBaseline = 'middle';
@@ -1601,6 +1611,7 @@ const ownedChars = () => [...CHARS.filter(c => S.chars.includes(c.id)), ...(boss
 
 /* --- состояние карточки: выбран / открыт / можно купить / не хватает / закрыт --- */
 function charState(c){
+  if (c.soon) return 'soon';
   if (c.boss) return BOSS.soon ? 'soon' : bossOpen() ? (S.sel === c.id ? 'sel' : 'own') : 'bosslock';
   if (c.gold === 0 && !S.chars.includes(c.id)) S.chars.push(c.id);
   if (S.chars.includes(c.id)) return S.sel === c.id ? 'sel' : 'own';
@@ -1626,7 +1637,7 @@ function renderCards(kind){
   for (const it of items){
     const st = isChar ? charState(it) : weapState(it);
     const card = document.createElement('div');
-    card.className = 'card' + (st === 'sel' ? ' sel' : '') + (['locked','bosslock','cant'].includes(st) && isChar ? ' locked' : '') + (it.boss ? ' boss' : '');
+    card.className = 'card' + (st === 'sel' ? ' sel' : '') + (['locked','bosslock','cant'].includes(st) && isChar ? ' locked' : '') + (st === 'soon' && !it.boss ? ' soonCard' : '') + (it.boss ? ' boss' : '');
     card.style.setProperty('--c', it.col);
     const meta = isChar
       ? `<span>набито: <b>${kos(it.id)}</b></span>` + (GLOBAL ? `<span>всеми: <b>${fmt(GLOBAL[it.id]||0)}</b></span>` : `<span>❤ <b>${fmt(hpOf(it))}</b></span>`)
@@ -1634,6 +1645,7 @@ function renderCards(kind){
     card.innerHTML = `<canvas width="480" height="480"></canvas><div class="n">${it.name}</div><div class="m">${meta}</div>${cardFooter(it, isChar, st)}`;
     if (st === 'sel'){ const r = document.createElement('span'); r.className = 'ribbon'; r.textContent = '✓ ВЫБРАН'; card.appendChild(r); }
     if (it.boss){ const tg = document.createElement('span'); tg.className = 'tag boss'; tg.textContent = 'БОСС · 45 сек'; card.appendChild(tg); }
+    else if (it.soon){ const tg = document.createElement('span'); tg.className = 'tag soon'; tg.textContent = 'НОВЕНЬКИЙ'; card.appendChild(tg); }
     const g = card.querySelector('canvas').getContext('2d');
     g.imageSmoothingQuality = 'high';
     if (isChar) g.drawImage(getPortrait(it), 0, 0);
@@ -1656,13 +1668,16 @@ function onCard(it, isChar, st){
   if (st === 'cant') toast(isChar ? `Не хватает <b>${fmt(it.gold - S.coins)} 🪙</b>. Набивай ебальники — за каждый нокаут дают монеты` : `Не хватает <b>${it.price - S.stars} ★</b>`);
   else if (st === 'locked') toast(`Сначала открой <b>${prevChar(it).name}</b>`);
   else if (st === 'bosslock') toast(`Босс откроется после ${BOSS.need} нокаутов. Осталось <b>${Math.max(0, BOSS.need - totalKos())}</b>`);
-  else if (st === 'soon') toast('Поганец скоро выйдет на ринг 🔥');
+  else if (st === 'soon') toast(`<b>${it.name}</b> скоро выйдет на ринг 🔥`);
 }
 function renderBanner(){
+  const soon = CHARS.filter(c => c.soon);
+  el('newBanner').hidden = !soon.length;
+  if (soon.length) setUI('newBanner','html', '🔜 Скоро в ринге: ' + soon.map(c => `<b>${c.name}</b>`).join(' и '));
   const b = el('soonBanner');
-  const html = BOSS.soon ? '🔥 Скоро в ринге: босс <b>Поганец</b>'
-    : bossOpen() ? (kos(BOSS.id) ? `👹 <b>Поганец</b> огрёб ${kos(BOSS.id)} раз. Ещё?` : '👹 Босс <b>Поганец</b> открыт! Найди его во вкладке «Ебальники»')
-    : `👹 Новый босс <b>Поганец</b>! Набей ещё ${Math.max(0, BOSS.need - totalKos())} ебальников, чтобы открыть`;
+  const html = BOSS.soon ? '🔥 Скоро в ринге: босс <b>Грицко-Ёпт</b>'
+    : bossOpen() ? (kos(BOSS.id) ? `👹 <b>Грицко-Ёпт</b> огрёб ${kos(BOSS.id)} раз. Ещё?` : '👹 Босс <b>Грицко-Ёпт</b> открыт! Найди его во вкладке «Ебальники»')
+    : `👹 Новый босс <b>Грицко-Ёпт</b>! Набей ещё ${Math.max(0, BOSS.need - totalKos())} ебальников, чтобы открыть`;
   setUI('soonBanner','html', html);
 }
 function renderRing(){

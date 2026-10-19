@@ -34,6 +34,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
   background:linear-gradient(180deg,#fff27a 0%,var(--gold) 35%,var(--hot2) 65%,var(--hot) 100%);-webkit-background-clip:text;background-clip:text;color:transparent;
   filter:drop-shadow(0 3px 0 #3a0820) drop-shadow(0 0 18px rgba(255,46,77,.45));transform:rotate(-2deg)}
 .sub{color:var(--dim);font-size:15px;margin:0}
+.verTag{text-align:center;font-size:11px;color:var(--dim);opacity:.6;margin:8px 0 2px}
 .tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:rgba(0,0,0,.3);padding:4px;border-radius:14px}
 .tabs button{font-family:var(--display);font-size:14px;letter-spacing:.03em;padding:9px;background:transparent;box-shadow:none;color:var(--dim)}
 .tabs button[aria-selected="true"]{background:linear-gradient(180deg,var(--hot2),var(--hot));color:#fff;box-shadow:0 3px 0 #7a0a22}
@@ -217,6 +218,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       </button>
       <button class="go" id="go" type="button"><span class="goGlove">🥊</span> В БОЙ</button>
       <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
+      <div class="verTag">v31</div>
     </div>
 
     <div class="pane" id="paneChars" hidden>
@@ -276,7 +278,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 30;
+const GAME_VERSION = 31;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})

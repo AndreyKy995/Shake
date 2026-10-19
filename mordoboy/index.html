@@ -218,7 +218,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       </button>
       <button class="go" id="go" type="button"><span class="goGlove">🥊</span> В БОЙ</button>
       <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
-      <div class="verTag">v32</div>
+      <div class="verTag">v33</div>
     </div>
 
     <div class="pane" id="paneChars" hidden>
@@ -278,7 +278,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 32;
+const GAME_VERSION = 33;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -582,7 +582,7 @@ function startFight(){
 }
 function endFight(win){
   mode = 'result';
-  musOutro(win);
+  musOutro();
   if (win){
     S.kos[opp.id] = kos(opp.id) + 1;
     addGlobal(opp.id);
@@ -812,142 +812,71 @@ function sndBell(){
   if (!audio()) return; const t = AC.currentTime;
   [0,.35,.7].forEach(dt => [880,1320,2200].forEach((fq,i) => { const o=AC.createOscillator(), g=AC.createGain(); o.frequency.value=fq; g.gain.setValueAtTime(.18/(i+1),t+dt); g.gain.exponentialRampToValueAtTime(.001,t+dt+.9); o.connect(g).connect(AC.destination); o.start(t+dt); o.stop(t+dt+1); }));
 }
-/* ===== Фоновая музыка: своя мелодия, синтезируется в браузере =====
-   Фа мажор, 112 BPM, 16 тактов: куплет (A) и припев (B). Мелодия — мягкий лид с вибрато и эхом,
-   под ней пэд-аккорды, арпеджио, плавный бас и лёгкие барабаны. */
-const BPM = 112, STEP = 60/BPM/4, _ = null;
-const MEL = [
-  72,_,_,_,76,_,77,_, 79,_,_,_,77,_,76,_,   // F
-  74,_,_,_,72,_,74,_, 77,_,_,_,76,_,74,_,   // Dm
-  74,_,_,_,72,_,70,_, 69,_,_,_,70,_,72,_,   // Bb
-  72,_,_,_,_,_,_,_,   67,_,69,_,70,_,72,_,  // C
-  72,_,_,_,76,_,77,_, 79,_,_,_,81,_,79,_,   // F
-  77,_,_,_,76,_,72,_, 76,_,_,_,79,_,77,_,   // Am
-  77,_,76,_,74,_,72,_, 74,_,77,_,81,_,79,_, // Bb
-  79,_,_,_,_,_,_,_,   76,_,77,_,79,_,72,_,  // C
-  81,_,_,_,79,_,77,_, 77,_,_,_,74,_,_,_,    // Dm
-  76,_,_,_,77,_,76,_, 72,_,_,_,_,_,69,_,    // Am
-  70,_,74,_,77,_,81,_, 82,_,_,_,81,_,79,_,  // Bb
-  81,_,_,_,_,_,77,_,  76,_,77,_,79,_,81,_,  // F
-  82,_,_,_,81,_,79,_, 77,_,_,_,74,_,77,_,   // Gm
-  79,_,_,_,76,_,72,_, 74,_,76,_,77,_,79,_,  // C
-  81,_,_,_,79,_,77,_, 76,_,_,_,72,_,74,_,   // F
-  76,_,_,_,_,_,74,_,  72,_,_,_,_,_,_,_,     // C
-];
-const CH = { F:[53,57,60,64], Dm:[50,53,57,60], Bb:[46,50,53,57], C:[48,52,55,58], Am:[45,48,52,55], Gm:[43,46,50,53] };
-const ROOT = { F:41, Dm:38, Bb:34, C:36, Am:33, Gm:31 };
-const PROG = ['F','Dm','Bb','C','F','Am','Bb','C','Dm','Am','Bb','F','Gm','C','F','C'];
-const mus = {on:false, sec:'menu', pos:0, outro:0, step:0, next:0, timer:null, gain:null, noise:null, echo:null};
-const hz = m => 440*Math.pow(2,(m-69)/12);
-function env(g, t, a, peak, d, sus, end){
-  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t+a);
-  g.gain.linearRampToValueAtTime(peak*sus, t+a+d); g.gain.setValueAtTime(peak*sus, Math.max(t+a+d, end-.08)); g.gain.linearRampToValueAtTime(0, end);
+const mus = {on:false, cur:null, outroUntil:0, timer:null, gain:null};
+/* ===== Музыка: трек «Боевой дух» (ре минор, 140 BPM), нарезан на бесшовные лупы =====
+   меню — вступление (тайко + струнные, тема снизу);
+   бой — первый дроп (медь, драйв-бас, тема);
+   босс — финальный дроп (прямая бочка, тема в две октавы);
+   старт боя — гонг-удар с дробью; конец боя — удар и аккорд-точка, потом снова меню. */
+const MUSIC_ENABLED = true, MUS_VER = 1, MUS_LOOP = 16*4*60/140;
+const MUS_VOL = { menu:.5, fight:.38, boss:.42 };
+const trk = {}; let musLoading = null;
+function musLoad(){
+  if (musLoading) return musLoading;
+  musLoading = Promise.all(['menu','fight','boss','ko','start'].map(n =>
+    fetch('music/' + n + '.mp3?v=' + MUS_VER).then(r => r.arrayBuffer())
+      .then(b => new Promise((res, rej) => AC.decodeAudioData(b, res, rej)))
+      .then(buf => { trk[n] = buf; }).catch(() => {})));
+  return musLoading;
 }
-function musLead(m, t, dur){
-  const g = AC.createGain(), o1 = AC.createOscillator(), o2 = AC.createOscillator(), lfo = AC.createOscillator(), lg = AC.createGain();
-  o1.type = 'triangle'; o2.type = 'sine'; o1.frequency.value = hz(m); o2.frequency.value = hz(m+12);
-  lfo.frequency.value = 5.5; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(hz(m)*.006, t+.25);
-  lfo.connect(lg); lg.connect(o1.frequency); lg.connect(o2.frequency);
-  const g2 = AC.createGain(); g2.gain.value = .25; o2.connect(g2).connect(g); o1.connect(g);
-  env(g, t, .02, .11, .15, .7, t+dur);
-  g.connect(mus.gain); g.connect(mus.echo);
-  [o1,o2,lfo].forEach(o => { o.start(t); o.stop(t+dur+.05); });
-}
-function musPad(notes, t, dur){
-  const f = AC.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900; f.Q.value = .5;
-  const g = AC.createGain(); env(g, t, .35, .028, .3, .8, t+dur); f.connect(g).connect(mus.gain);
-  notes.forEach(n => [-6, 6].forEach(det => { const o = AC.createOscillator(); o.type = 'sawtooth'; o.frequency.value = hz(n+12); o.detune.value = det; o.connect(f); o.start(t); o.stop(t+dur+.05); }));
-}
-function musPluck(m, t){
-  const o = AC.createOscillator(), f = AC.createBiquadFilter(), g = AC.createGain();
-  o.type = 'square'; o.frequency.value = hz(m); f.type = 'lowpass'; f.frequency.setValueAtTime(2200, t); f.frequency.exponentialRampToValueAtTime(500, t+.15);
-  g.gain.setValueAtTime(.03, t); g.gain.exponentialRampToValueAtTime(.0001, t+.22);
-  o.connect(f).connect(g); g.connect(mus.gain); g.connect(mus.echo); o.start(t); o.stop(t+.25);
-}
-function musBass(m, t, dur){
-  const o = AC.createOscillator(), o2 = AC.createOscillator(), g = AC.createGain();
-  o.type = 'sine'; o2.type = 'triangle'; o.frequency.value = hz(m); o2.frequency.value = hz(m);
-  const g2 = AC.createGain(); g2.gain.value = .35; o2.connect(g2).connect(g); o.connect(g);
-  env(g, t, .01, .3, .12, .6, t+dur); g.connect(mus.gain); o.start(t); o.stop(t+dur+.05); o2.start(t); o2.stop(t+dur+.05);
-}
-function musNoise(t, dur, vol, type, freq){
-  const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain();
-  src.buffer = mus.noise; f.type = type; f.frequency.value = freq;
-  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t+dur);
-  src.connect(f).connect(g).connect(mus.gain); src.start(t); src.stop(t+dur+.03);
-}
-function musKick(t, vol){
-  const o = AC.createOscillator(), g = AC.createGain();
-  o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(42, t+.12);
-  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t+.2);
-  o.connect(g).connect(mus.gain); o.start(t); o.stop(t+.22);
-}
-/* Куски трека по местам:
-   меню — куплет (такты 1–8), спокойно, без бочки на каждую долю;
-   бой — припев (такты 9–16), плотные барабаны и хэты по 16-м;
-   босс — тот же припев, но на полтона ниже, бочка «четыре на пол», бас с октавой;
-   последние 10 секунд боя — добавляется малый барабан на каждую долю (нагнетание);
-   нокаут/конец боя — короткая концовка из последней фразы припева, потом обратно в меню. */
-const SEC = { menu:[0,8], fight:[8,16], boss:[8,16] };
 function musSection(){ return mode === 'fight' ? (opp && opp.c.boss ? 'boss' : 'fight') : 'menu'; }
-function musStep(t){
-  const sec = mus.sec, [b0, b1] = SEC[sec], len = (b1-b0)*16, pos = mus.pos % len;
-  const s = pos % 16, bar = b0 + Math.floor(pos/16), ch = PROG[bar];
-  const fight = sec !== 'menu', boss = sec === 'boss', tr = boss ? -1 : 0;
-  const late = fight && mode === 'fight' && timeLeft <= 10;
-  const gi = b0*16 + pos, m = MEL[gi];
-  if (m){ let n = 1; while (n < 8 && !MEL[b0*16 + (pos+n) % len]) n++; musLead(m+tr, t, STEP*n*.98); }
-  if (s === 0) musPad(CH[ch].map(x => x+tr), t, STEP*16);
-  if (s % 2 === 0 || boss){ const c = CH[ch], k = (s >> (boss ? 0 : 1)) % 4; musPluck(c[k] + 12 + tr, t); }
-  const R = ROOT[ch] + tr;
-  if (s === 0) musBass(R, t, STEP*5);
-  if (s === 6) musBass(R+7, t, STEP*2);
-  if (s === 8) musBass(R+12, t, STEP*3);
-  if (s === 12) musBass(R+7, t, STEP*3);
-  if (boss && (s === 3 || s === 11)) musBass(R+12, t, STEP);
-  if (boss ? s % 4 === 0 : (s === 0 || s === 8 || (fight && (s === 6 || s === 10)))) musKick(t, boss ? .5 : fight ? .45 : .3);
-  if (s === 4 || s === 12 || (late && s % 4 === 0)) musNoise(t, .14, fight ? .14 : .07, 'bandpass', 1900);
-  if (late && s % 2 === 1) musNoise(t, .06, .05, 'bandpass', 2400);
-  if (s % 2 === 0 || fight) musNoise(t, .04, s % 4 === 2 ? .035 : .02, 'highpass', 8000);
+function musMaster(){ if (!mus.gain){ mus.gain = AC.createGain(); mus.gain.gain.value = 1; mus.gain.connect(AC.destination); } return mus.gain; }
+function musPlayLoop(name, fade){
+  const buf = trk[name]; if (!buf) return;
+  musFadeOut(fade);
+  const src = AC.createBufferSource(), g = AC.createGain(), t = AC.currentTime;
+  src.buffer = buf; src.loop = true; src.loopStart = 0; src.loopEnd = Math.min(buf.duration, MUS_LOOP);
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(MUS_VOL[name], t + fade);
+  src.connect(g).connect(musMaster()); src.start(t);
+  mus.cur = { name, src, g };
 }
-/* Концовка: последние 2 такта припева, без возврата к началу */
-function musOutro(win){
+function musFadeOut(fade){
+  const c = mus.cur; if (!c) return; mus.cur = null;
+  const t = AC.currentTime; c.g.gain.cancelScheduledValues(t); c.g.gain.setValueAtTime(c.g.gain.value, t);
+  c.g.gain.linearRampToValueAtTime(0, t + fade); try { c.src.stop(t + fade + .05); } catch(e){}
+}
+function musOneShot(name, vol){
+  const buf = trk[name]; if (!buf) return 0;
+  const src = AC.createBufferSource(), g = AC.createGain(); g.gain.value = vol;
+  src.buffer = buf; src.connect(g).connect(musMaster()); src.start(); return buf.duration;
+}
+/* Конец боя: глушим луп, играет концовка, после неё — меню */
+function musOutro(){
   if (!mus.on || !AC) return;
-  mus.outro = 32; mus.sec = 'fight'; mus.pos = 6*16; mus.next = Math.max(mus.next, AC.currentTime + .05);
+  musFadeOut(.25); const d = musOneShot('ko', .6);
+  mus.outroUntil = performance.now() + Math.max(1500, (d - 1.2) * 1000);
 }
 function musTick(){
+  if (!mus.on || !Object.keys(trk).length) return;
+  if (performance.now() < mus.outroUntil && mode !== 'fight') return;
   const want = musSection();
-  if (mode === 'fight') mus.outro = 0;
-  if (want !== mus.sec && !mus.outro){
-    // в бой — сразу (с начала припева), из боя — с начала ближайшего такта
-    if (want !== 'menu' || mus.pos % 16 === 0){ mus.sec = want; mus.pos = 0; mus.gain.gain.setTargetAtTime(want === 'menu' ? .5 : .38, AC.currentTime, .3); }
-  }
-  while (mus.next < AC.currentTime + .15){
-    musStep(mus.next); mus.pos++; mus.next += STEP;
-    if (mus.outro && --mus.outro === 0){ mus.sec = 'menu'; mus.pos = 0; mus.next += STEP*8; }
+  if (!mus.cur || mus.cur.name !== want){
+    if (want !== 'menu' && (!mus.cur || mus.cur.name === 'menu')) musOneShot('start', .55);
+    musPlayLoop(want, want === 'menu' ? 1.5 : .15);
   }
 }
-const MUSIC_ENABLED = true;
 function startMusic(){
   if (!MUSIC_ENABLED || !S.music || mus.on || !audio()) return;
   if (AC.state === 'suspended') AC.resume();
-  if (!mus.gain){
-    mus.gain = AC.createGain(); mus.gain.gain.value = .5; mus.gain.connect(AC.destination);
-    mus.echo = AC.createGain(); mus.echo.gain.value = .22;
-    const dl = AC.createDelay(1); dl.delayTime.value = STEP*3; const fb = AC.createGain(); fb.gain.value = .32;
-    const ef = AC.createBiquadFilter(); ef.type = 'lowpass'; ef.frequency.value = 2500;
-    mus.echo.connect(dl); dl.connect(ef); ef.connect(fb); fb.connect(dl); ef.connect(mus.gain);
-    const len = Math.floor(AC.sampleRate*.2); mus.noise = AC.createBuffer(1, len, AC.sampleRate);
-    const d = mus.noise.getChannelData(0); for (let i=0;i<len;i++) d[i] = Math.random()*2-1;
-  }
-  mus.sec = musSection(); mus.pos = 0; mus.outro = 0;
-  mus.on = true; mus.next = AC.currentTime + .05; mus.timer = setInterval(musTick, 25);
+  mus.on = true; mus.outroUntil = 0;
+  musLoad().then(() => { if (mus.on) musTick(); });
+  clearInterval(mus.timer); mus.timer = setInterval(musTick, 120);
 }
-function stopMusic(){ mus.on = false; clearInterval(mus.timer); }
+function stopMusic(){ mus.on = false; clearInterval(mus.timer); if (AC) musFadeOut(.2); }
 function musLabels(){ ['musM','musF'].forEach(id => { const b = document.getElementById(id); b.textContent = S.music ? '♪ вкл' : '♪ выкл'; b.setAttribute('aria-pressed', S.music); }); }
 function toggleMusic(){ S.music = !S.music; save(); musLabels(); if (S.music) startMusic(); else stopMusic(); }
 document.addEventListener('pointerdown', () => startMusic());
-document.addEventListener('visibilitychange', () => { if (document.hidden) stopMusic(); else if (AC) startMusic(); });
+document.addEventListener('visibilitychange', () => { if (!AC) return; if (document.hidden) AC.suspend(); else AC.resume(); });
 
 function haptic(kind){
   try { const h = window.Telegram?.WebApp?.HapticFeedback; if (h) { kind==='ko' ? h.notificationOccurred('success') : h.impactOccurred(kind); return; } } catch(e){}

@@ -218,7 +218,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       </button>
       <button class="go" id="go" type="button"><span class="goGlove">🥊</span> В БОЙ</button>
       <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
-      <div class="verTag">v31</div>
+      <div class="verTag">v32</div>
     </div>
 
     <div class="pane" id="paneChars" hidden>
@@ -278,7 +278,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 31;
+const GAME_VERSION = 32;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -582,6 +582,7 @@ function startFight(){
 }
 function endFight(win){
   mode = 'result';
+  musOutro(win);
   if (win){
     S.kos[opp.id] = kos(opp.id) + 1;
     addGlobal(opp.id);
@@ -836,7 +837,7 @@ const MEL = [
 const CH = { F:[53,57,60,64], Dm:[50,53,57,60], Bb:[46,50,53,57], C:[48,52,55,58], Am:[45,48,52,55], Gm:[43,46,50,53] };
 const ROOT = { F:41, Dm:38, Bb:34, C:36, Am:33, Gm:31 };
 const PROG = ['F','Dm','Bb','C','F','Am','Bb','C','Dm','Am','Bb','F','Gm','C','F','C'];
-const mus = {on:false, step:0, next:0, timer:null, gain:null, noise:null, echo:null};
+const mus = {on:false, sec:'menu', pos:0, outro:0, step:0, next:0, timer:null, gain:null, noise:null, echo:null};
 const hz = m => 440*Math.pow(2,(m-69)/12);
 function env(g, t, a, peak, d, sus, end){
   g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(peak, t+a);
@@ -881,22 +882,52 @@ function musKick(t, vol){
   g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t+.2);
   o.connect(g).connect(mus.gain); o.start(t); o.stop(t+.22);
 }
-function musStep(i, t){
-  const n = MEL.length, s = i % 16, bar = Math.floor(i/16) % PROG.length, ch = PROG[bar], fight = mode === 'fight';
-  const m = MEL[i % n];
-  if (m){ let len = 1; while (len < 8 && !MEL[(i+len) % n]) len++; musLead(m, t, STEP*len*.98); }
-  if (s === 0) musPad(CH[ch], t, STEP*16);
-  if (s % 2 === 0){ const c = CH[ch], k = (s/2) % 4; musPluck(c[[0,1,2,3][k]] + 12, t); }
-  if (s === 0) musBass(ROOT[ch], t, STEP*5);
-  if (s === 6) musBass(ROOT[ch]+7, t, STEP*2);
-  if (s === 8) musBass(ROOT[ch]+12, t, STEP*3);
-  if (s === 12) musBass(ROOT[ch]+7, t, STEP*3);
-  if (s === 0 || s === 8 || (fight && (s === 6 || s === 10))) musKick(t, fight ? .45 : .32);
-  if (s === 4 || s === 12) musNoise(t, .14, fight ? .14 : .08, 'bandpass', 1900);
+/* Куски трека по местам:
+   меню — куплет (такты 1–8), спокойно, без бочки на каждую долю;
+   бой — припев (такты 9–16), плотные барабаны и хэты по 16-м;
+   босс — тот же припев, но на полтона ниже, бочка «четыре на пол», бас с октавой;
+   последние 10 секунд боя — добавляется малый барабан на каждую долю (нагнетание);
+   нокаут/конец боя — короткая концовка из последней фразы припева, потом обратно в меню. */
+const SEC = { menu:[0,8], fight:[8,16], boss:[8,16] };
+function musSection(){ return mode === 'fight' ? (opp && opp.c.boss ? 'boss' : 'fight') : 'menu'; }
+function musStep(t){
+  const sec = mus.sec, [b0, b1] = SEC[sec], len = (b1-b0)*16, pos = mus.pos % len;
+  const s = pos % 16, bar = b0 + Math.floor(pos/16), ch = PROG[bar];
+  const fight = sec !== 'menu', boss = sec === 'boss', tr = boss ? -1 : 0;
+  const late = fight && mode === 'fight' && timeLeft <= 10;
+  const gi = b0*16 + pos, m = MEL[gi];
+  if (m){ let n = 1; while (n < 8 && !MEL[b0*16 + (pos+n) % len]) n++; musLead(m+tr, t, STEP*n*.98); }
+  if (s === 0) musPad(CH[ch].map(x => x+tr), t, STEP*16);
+  if (s % 2 === 0 || boss){ const c = CH[ch], k = (s >> (boss ? 0 : 1)) % 4; musPluck(c[k] + 12 + tr, t); }
+  const R = ROOT[ch] + tr;
+  if (s === 0) musBass(R, t, STEP*5);
+  if (s === 6) musBass(R+7, t, STEP*2);
+  if (s === 8) musBass(R+12, t, STEP*3);
+  if (s === 12) musBass(R+7, t, STEP*3);
+  if (boss && (s === 3 || s === 11)) musBass(R+12, t, STEP);
+  if (boss ? s % 4 === 0 : (s === 0 || s === 8 || (fight && (s === 6 || s === 10)))) musKick(t, boss ? .5 : fight ? .45 : .3);
+  if (s === 4 || s === 12 || (late && s % 4 === 0)) musNoise(t, .14, fight ? .14 : .07, 'bandpass', 1900);
+  if (late && s % 2 === 1) musNoise(t, .06, .05, 'bandpass', 2400);
   if (s % 2 === 0 || fight) musNoise(t, .04, s % 4 === 2 ? .035 : .02, 'highpass', 8000);
 }
-function musTick(){ while (mus.next < AC.currentTime + .15){ musStep(mus.step, mus.next); mus.step++; mus.next += STEP; } }
-const MUSIC_ENABLED = false;   // фоновая музыка временно выключена; true — вернуть
+/* Концовка: последние 2 такта припева, без возврата к началу */
+function musOutro(win){
+  if (!mus.on || !AC) return;
+  mus.outro = 32; mus.sec = 'fight'; mus.pos = 6*16; mus.next = Math.max(mus.next, AC.currentTime + .05);
+}
+function musTick(){
+  const want = musSection();
+  if (mode === 'fight') mus.outro = 0;
+  if (want !== mus.sec && !mus.outro){
+    // в бой — сразу (с начала припева), из боя — с начала ближайшего такта
+    if (want !== 'menu' || mus.pos % 16 === 0){ mus.sec = want; mus.pos = 0; mus.gain.gain.setTargetAtTime(want === 'menu' ? .5 : .38, AC.currentTime, .3); }
+  }
+  while (mus.next < AC.currentTime + .15){
+    musStep(mus.next); mus.pos++; mus.next += STEP;
+    if (mus.outro && --mus.outro === 0){ mus.sec = 'menu'; mus.pos = 0; mus.next += STEP*8; }
+  }
+}
+const MUSIC_ENABLED = true;
 function startMusic(){
   if (!MUSIC_ENABLED || !S.music || mus.on || !audio()) return;
   if (AC.state === 'suspended') AC.resume();
@@ -909,6 +940,7 @@ function startMusic(){
     const len = Math.floor(AC.sampleRate*.2); mus.noise = AC.createBuffer(1, len, AC.sampleRate);
     const d = mus.noise.getChannelData(0); for (let i=0;i<len;i++) d[i] = Math.random()*2-1;
   }
+  mus.sec = musSection(); mus.pos = 0; mus.outro = 0;
   mus.on = true; mus.next = AC.currentTime + .05; mus.timer = setInterval(musTick, 25);
 }
 function stopMusic(){ mus.on = false; clearInterval(mus.timer); }

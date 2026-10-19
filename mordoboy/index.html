@@ -276,7 +276,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 27;
+const GAME_VERSION = 28;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -488,6 +488,29 @@ const angDiff = (a,b) => Math.atan2(Math.sin(a-b), Math.cos(a-b));
 const AX = -300, AW = 1000;
 const arena = layer(AW, H, 1.5);
 const crowd = [];
+/* неоновая вывеска «УХТОМКА» — отдельный слой, всегда поверх персонажа */
+const signC = document.createElement('canvas');
+function buildSign(){
+  const k = 3, Wd = 330, Hd = 96; signC.width = Wd*k; signC.height = Hd*k;
+  const g = signC.getContext('2d'); g.setTransform(k,0,0,k,0,0); g.clearRect(0,0,Wd,Hd);
+  g.textAlign = 'center'; g.textBaseline = 'alphabetic'; g.lineJoin = 'round';
+  const SIGN = 'УХТОМКА', x = Wd/2, y = 60;
+  g.font = '52px "Russo One", sans-serif';
+  g.shadowColor = '#00e5ff'; g.shadowBlur = 22; g.lineWidth = 9; g.strokeStyle = '#00b8ff'; g.strokeText(SIGN, x, y);
+  g.shadowColor = '#ff2e88'; g.shadowBlur = 18; g.lineWidth = 5; g.strokeStyle = '#ff3d9a'; g.strokeText(SIGN, x, y);
+  const sg = g.createLinearGradient(0, y-44, 0, y+4); sg.addColorStop(0,'#fffbd0'); sg.addColorStop(.35,'#ffe14a'); sg.addColorStop(.7,'#ff9a2e'); sg.addColorStop(1,'#ff3d6a');
+  g.shadowColor = '#ffc93c'; g.shadowBlur = 12; g.fillStyle = sg; g.fillText(SIGN, x, y);
+  g.shadowBlur = 0; g.lineWidth = 1.5; g.strokeStyle = 'rgba(255,255,255,.9)'; g.strokeText(SIGN, x, y);
+  g.font = '14px "Russo One", sans-serif'; g.fillStyle = '#7ff3ff'; g.shadowColor = '#00e5ff'; g.shadowBlur = 8;
+  g.fillText('★  БОИ БЕЗ ПРАВИЛ  ★', x, y + 22);
+}
+function drawSign(g, cx, top, w, flick){
+  if (!signC.width) buildSign();
+  g.save(); g.setTransform(1,0,0,1,0,0);
+  g.globalAlpha = flick; g.drawImage(signC, cx - w/2, top, w, w*signC.height/signC.width);
+  g.restore();
+}
+const signFlick = t => (Math.sin(t*37) > .985 ? .55 : 1);   // изредка неон «моргает»
 function buildArena(){
   const g = arena.g; crowd.length = 0;
   g.setTransform(arena.c.width/AW,0,0,arena.c.width/AW,0,0); g.clearRect(0,0,AW,H);
@@ -505,18 +528,7 @@ function buildArena(){
     }
   }
   // вывеска
-  // неоновая вывеска «УХТОМКА»
-  g.save(); g.textAlign='center'; g.textBaseline='alphabetic'; g.font = '56px "Russo One", sans-serif';
-  const SIGN = 'УХТОМКА', sy = 72;
-  g.lineJoin = 'round';
-  g.shadowColor = '#00e5ff'; g.shadowBlur = 30; g.lineWidth = 9; g.strokeStyle = '#00b8ff'; g.strokeText(SIGN, AW/2, sy);   // голубой ореол
-  g.shadowColor = '#ff2e88'; g.shadowBlur = 26; g.lineWidth = 5; g.strokeStyle = '#ff3d9a'; g.strokeText(SIGN, AW/2, sy);   // розовая трубка
-  const sg = g.createLinearGradient(0, sy-48, 0, sy+4); sg.addColorStop(0,'#fffbd0'); sg.addColorStop(.35,'#ffe14a'); sg.addColorStop(.7,'#ff9a2e'); sg.addColorStop(1,'#ff3d6a');
-  g.shadowColor = '#ffc93c'; g.shadowBlur = 18; g.fillStyle = sg; g.fillText(SIGN, AW/2, sy);
-  g.shadowBlur = 0; g.lineWidth = 1.5; g.strokeStyle = 'rgba(255,255,255,.85)'; g.strokeText(SIGN, AW/2, sy);
-  g.font = '15px "Russo One", sans-serif'; g.fillStyle = '#7ff3ff'; g.shadowColor = '#00e5ff'; g.shadowBlur = 10;
-  g.fillText('★  БОИ БЕЗ ПРАВИЛ  ★', AW/2, sy + 22);
-  g.restore();
+  // вывеска рисуется отдельным слоем поверх сцены (signC)
   // виньетка
   const vg = g.createRadialGradient(AW/2, 200, 120, AW/2, 220, 520); vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(0,0,0,.55)');
   g.fillStyle = vg; g.fillRect(0,0,AW,H);
@@ -1488,6 +1500,7 @@ function frame(now){
   if (opp.sprite) drawSpriteChar(ctx, opp, {x:HX+rec.x, y:HY+rec.y, a:rec.a, sq:rec.sq}, faceL.c);
   else { drawBody(); drawHead(ctx, opp, {x:HX+rec.x, y:HY+rec.y, a:rec.a, sq:rec.sq}, faceL.c); if (opp.c.boss) drawHorns(ctx, opp, rec); }
   if (opp.bs) drawBossGuard(t, now);
+  { const sw = Math.min(cv.width*.58, 260*dpr); drawSign(ctx, cv.width/2, 34*dpr, sw, signFlick(t)); ctx.setTransform(dpr*scale,0,0,dpr*scale,dpr*(offX + sx*scale), dpr*(offY + sy*scale)); }
   drawStun(t);
   for (const p of parts){
     if (p.type==='t'){ ctx.fillStyle='#f4efe4'; ctx.fillRect(p.x-2.5,p.y-3.5,5,7); continue; }
@@ -1776,6 +1789,7 @@ function drawStage(t){
   g.save(); g.globalCompositeOperation = 'lighter';
   const rim = g.createLinearGradient(0,0,W,0); rim.addColorStop(0,'rgba(255,46,140,.16)'); rim.addColorStop(.3,'rgba(255,46,140,0)'); rim.addColorStop(.7,'rgba(51,214,255,0)'); rim.addColorStop(1,'rgba(51,214,255,.16)');
   g.fillStyle = rim; g.fillRect(-200,0,W+400,H); g.restore();
+  drawSign(g, stageW*d/2, 40*d, Math.min(stageW*.72, 290)*d, signFlick(t));
   // виньетка
   g.setTransform(d,0,0,d,0,0);
   const vg = g.createRadialGradient(stageW/2, stageH*.42, stageW*.3, stageW/2, stageH*.45, stageW*.95);
@@ -1877,7 +1891,7 @@ musLabels();
 if (!MUSIC_ENABLED){ el('musM').hidden = true; el('musF').hidden = true; }
 
 show('menu'); showPane('ring'); requestAnimationFrame(frame); loadGlobal();
-if (document.fonts) document.fonts.ready.then(() => { buildArena(); buildBgCache(); if (mode === 'menu') renderList(); });
+if (document.fonts) document.fonts.ready.then(() => { buildSign(); buildArena(); buildBgCache(); if (mode === 'menu') renderList(); });
 </script>
 
 </body></html>

@@ -276,7 +276,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 29;
+const GAME_VERSION = 30;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -1500,7 +1500,6 @@ function frame(now){
   if (opp.sprite) drawSpriteChar(ctx, opp, {x:HX+rec.x, y:HY+rec.y, a:rec.a, sq:rec.sq}, faceL.c);
   else { drawBody(); drawHead(ctx, opp, {x:HX+rec.x, y:HY+rec.y, a:rec.a, sq:rec.sq}, faceL.c); if (opp.c.boss) drawHorns(ctx, opp, rec); }
   if (opp.bs) drawBossGuard(t, now);
-  { const sw = Math.min(cv.width*.58, 260*dpr); drawSign(ctx, cv.width/2, 34*dpr, sw, signFlick(t)); ctx.setTransform(dpr*scale,0,0,dpr*scale,dpr*(offX + sx*scale), dpr*(offY + sy*scale)); }
   drawStun(t);
   for (const p of parts){
     if (p.type==='t'){ ctx.fillStyle='#f4efe4'; ctx.fillRect(p.x-2.5,p.y-3.5,5,7); continue; }

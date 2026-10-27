@@ -122,6 +122,9 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 .card .buy.cant{color:var(--dim);background:rgba(255,255,255,.08);box-shadow:none;opacity:1}
 .card .lockInfo{font-size:13px;text-align:center;color:var(--dim);padding:6px 2px;line-height:1.2}
 .upList{display:flex;flex-direction:column;gap:10px}
+.resetBox{margin-top:auto;padding-top:24px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center}
+.resetBox span{color:var(--dim);font-size:12px;max-width:280px}
+.resetBtn{background:transparent;color:#ff6b81;box-shadow:0 0 0 2px #ff6b81 inset;font-family:var(--display);font-size:14px;padding:10px 18px;border-radius:12px}
 .giftCard{padding:12px;border-radius:16px;background:linear-gradient(135deg,#3a0d5c,#7a0a22);box-shadow:0 4px 0 #120624,0 0 0 2px rgba(255,201,60,.35) inset}
 .giftCard h3{font-family:var(--display);font-size:17px;margin:0 0 8px}
 .gDays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px}
@@ -279,7 +282,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="coach" id="coach" hidden><span id="coachTxt"></span><button type="button" id="coachOk">Понял</button></div>
       <button class="go" id="go" type="button"><span class="goGlove">🥊</span> В БОЙ</button>
       <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
-      <div class="verTag">v42</div>
+      <div class="verTag">v43</div>
     </div>
 
     <div class="pane" id="paneChars" hidden>
@@ -296,6 +299,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
         <div class="upCard"><div class="upIcon">👊</div><div class="upBody"><b>Удар</b><span id="upPowInfo"></span></div><button class="upBtn" id="upPow" type="button"></button></div>
         <div class="upCard"><div class="upIcon">⚡</div><div class="upBody"><b>Выносливость</b><span id="upEnInfo"></span></div><button class="upBtn" id="upEn" type="button"></button></div>
       </div>
+      <div class="resetBox"><button type="button" id="resetBtn" class="resetBtn">↺ Начать заново</button><span>Сотрёт монеты, звёзды, прокачку, оружие и открытых бойцов. Топ и подарок дня останутся.</span></div>
     </div>
 
     <div class="pane" id="paneQuest" hidden>
@@ -357,7 +361,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 42;
+const GAME_VERSION = 43;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -444,17 +448,17 @@ const PHRASES = {
 /* ===== Персонажи и оружие ===== */
 const SKINS = [[236,196,164],[218,168,132],[184,132,98],[132,92,66],[150,172,104]];
 const CHARS = [
-  {id:'spartak',  name:'Спартак «Печенёк»', gold:0,   hp:300, regen:.10, skin:0, hair:'#7a4a1c', hairH:0, nose:-1, mus:false, beard:false, col:'#ff9f1c', sprite:'spartak'},
-  {id:'berdysh',  name:'Бердыш',            gold:1200,  hp:340, regen:.11, skin:0, hair:'#7d7468', hairH:0, nose:1,  mus:false, beard:false, col:'#2e7bff', sprite:'berdysh'},
-  {id:'dimon',    name:'Димон Валет',       gold:3000,  hp:320, regen:.10, skin:0, hair:'#b89a62', hairH:0, nose:1,  mus:false, beard:false, col:'#5cf08a', sprite:'dimon'},
-  {id:'zuban',    name:'Зубан',             gold:6000,  hp:320, regen:.10, skin:0, hair:'#3a3028', hairH:0, nose:1,  mus:false, beard:false, col:'#33d6ff', sprite:'zuban'},
-  {id:'vitya',    name:'Витюшка «Благодарин»', gold:12000, hp:360, regen:.11, skin:0, hair:'#4a2e1e', hairH:0, nose:-1, mus:false, beard:false, col:'#b46bff', sprite:'vitya'},
-  {id:'vadik',    name:'Вадик',             gold:20000, hp:400, regen:.12, skin:0, hair:'#5a3a1e', hairH:0, nose:1,  mus:false, beard:false, col:'#ff7a2e', sprite:'vadik'},
-  {id:'benych',   name:'Беныч',             gold:25000, hp:420, regen:.12, skin:0, hair:'#3a2216', hairH:0, nose:1,  mus:false, beard:false, col:'#ff7a2e', sprite:'benych'},
-  {id:'kachalkin',name:'Качалкин',          gold:30000, hp:430, regen:.13, skin:0, hair:'#e8b423', hairH:0, nose:1,  mus:false, beard:false, col:'#ffd23c', sprite:'kachalkin'},
-  {id:'anton',    name:'Антон «Алкаш»',     gold:32000, hp:440, regen:.14, skin:0, hair:'#a8742a', hairH:0, nose:1,  mus:false, beard:false, col:'#7fe0ff', sprite:'anton'},
-  {id:'senatov',  name:'Вася Сенатов',       gold:35000, hp:440, regen:.12, skin:1, hair:'#3a2a1c', hairH:20, nose:1,  mus:false, beard:false, col:'#33d6ff', sprite:'senatov'},
-  {id:'syavka',   name:'Сявка «Бутылочник»', gold:50000, hp:480, regen:.12, skin:2, hair:'#2b2b2b', hairH:-10, nose:-1, mus:true,  beard:true,  col:'#5cf08a', soon:true},
+  {id:'spartak',  name:'Спартак «Печенёк»', gold:0, hp:200, regen:0.08, skin:0, hair:'#7a4a1c', hairH:0, nose:-1, mus:false, beard:false, col:'#ff9f1c', sprite:'spartak'},
+  {id:'berdysh',  name:'Бердыш',            gold:300, hp:310, regen:0.09, skin:0, hair:'#7d7468', hairH:0, nose:1,  mus:false, beard:false, col:'#2e7bff', sprite:'berdysh'},
+  {id:'dimon',    name:'Димон Валет',       gold:700, hp:480, regen:0.1, skin:0, hair:'#b89a62', hairH:0, nose:1,  mus:false, beard:false, col:'#5cf08a', sprite:'dimon'},
+  {id:'zuban',    name:'Зубан',             gold:1500, hp:745, regen:0.1, skin:0, hair:'#3a3028', hairH:0, nose:1,  mus:false, beard:false, col:'#33d6ff', sprite:'zuban'},
+  {id:'vitya',    name:'Витюшка «Благодарин»', gold:3000, hp:1150, regen:0.11, skin:0, hair:'#4a2e1e', hairH:0, nose:-1, mus:false, beard:false, col:'#b46bff', sprite:'vitya'},
+  {id:'vadik',    name:'Вадик',             gold:6000, hp:1790, regen:0.11, skin:0, hair:'#5a3a1e', hairH:0, nose:1,  mus:false, beard:false, col:'#ff7a2e', sprite:'vadik'},
+  {id:'benych',   name:'Беныч',             gold:12000, hp:2770, regen:0.12, skin:0, hair:'#3a2216', hairH:0, nose:1,  mus:false, beard:false, col:'#ff7a2e', sprite:'benych'},
+  {id:'kachalkin',name:'Качалкин',          gold:22000, hp:4300, regen:0.12, skin:0, hair:'#e8b423', hairH:0, nose:1,  mus:false, beard:false, col:'#ffd23c', sprite:'kachalkin'},
+  {id:'anton',    name:'Антон «Алкаш»',     gold:40000, hp:6650, regen:0.13, skin:0, hair:'#a8742a', hairH:0, nose:1,  mus:false, beard:false, col:'#7fe0ff', sprite:'anton'},
+  {id:'senatov',  name:'Вася Сенатов',       gold:70000, hp:10300, regen:0.13, skin:1, hair:'#3a2a1c', hairH:20, nose:1,  mus:false, beard:false, col:'#33d6ff', sprite:'senatov'},
+  {id:'syavka',   name:'Сявка «Бутылочник»', gold:120000, hp:16000, regen:0.14, skin:2, hair:'#2b2b2b', hairH:-10, nose:-1, mus:true,  beard:true,  col:'#5cf08a', soon:true},
 ];
 
 /* ===== Рисованные персонажи (картинка + повреждения поверх) =====
@@ -498,16 +502,16 @@ for (const id in SPRITES){
 const WEAPONS = [
   {id:'fist',    name:'Кулаки',     price:0,   mult:1,   blood:0,   note:'Бац-бац',       col:'#ffd23f', words:['БАЦ!','ТЫЩ!','ПАФ!']},
   {id:'pan',     name:'Сковородка', price:10,  mult:2.5, blood:.1,  note:'Бонг и звёзды', col:'#7fe0ff', words:['БОНГ!','ДЗЫНЬ!']},
-  {id:'fish',    name:'Вобла',      price:15,  mult:3.5, blood:.15, note:'Мокро и чешуя', col:'#9fd8ff', words:['ШЛЁП!','ХЛЮП!']},
-  {id:'brick',   name:'Кирпич',     price:20,  mult:5,   blood:.25, note:'Крошится',      col:'#ff8a3d', words:['ХРЯСЬ!','ТРЕСК!']},
-  {id:'stool',   name:'Табуретка',  price:30,  mult:7,   blood:.3,  note:'В щепки',       col:'#e0a060', words:['ТРАХ!','БДЫЩ!']},
-  {id:'bat',     name:'Бита',       price:35, mult:9,   blood:.35, note:'Крутит башку',  col:'#ffe066', words:['ХУЯК!','БАМС!']},
-  {id:'crowbar', name:'Лом',        price:50, mult:15,  blood:.5,  note:'Искры и мясо',  col:'#ff3b6b', words:['ЗВЯК!','ХРУСЬ!']},
-  {id:'extinguisher', name:'Огнетушитель', price:70, mult:20, blood:.45, note:'Пена и звон', col:'#ff5a3d', words:['ПШШШ!','ДОН-Н!']},
+  {id:'fish',    name:'Вобла',      price:20,  mult:3.5, blood:.15, note:'Мокро и чешуя', col:'#9fd8ff', words:['ШЛЁП!','ХЛЮП!']},
+  {id:'brick',   name:'Кирпич',     price:35,  mult:5,   blood:.25, note:'Крошится',      col:'#ff8a3d', words:['ХРЯСЬ!','ТРЕСК!']},
+  {id:'stool',   name:'Табуретка',  price:60,  mult:7,   blood:.3,  note:'В щепки',       col:'#e0a060', words:['ТРАХ!','БДЫЩ!']},
+  {id:'bat',     name:'Бита',       price:90, mult:9,   blood:.35, note:'Крутит башку',  col:'#ffe066', words:['ХУЯК!','БАМС!']},
+  {id:'crowbar', name:'Лом',        price:140, mult:15,  blood:.5,  note:'Искры и мясо',  col:'#ff3b6b', words:['ЗВЯК!','ХРУСЬ!']},
+  {id:'extinguisher', name:'Огнетушитель', price:200, mult:20, blood:.45, note:'Пена и звон', col:'#ff5a3d', words:['ПШШШ!','ДОН-Н!']},
 ];
 /* ===== БОСС =====
    Картинки пока нет — рисуется кодом. Когда будет картинка: добавить её в SPRITES и прописать sprite:'poganets'. */
-const BOSS = {id:'poganets', name:'Грицко-Ёпт', boss:true, hp:2600, grow:1.15, time:45, regen:.04, skin:0, hair:'#111111', hairH:-30, nose:-1, mus:true, beard:true, col:'#ff2e4d',
+const BOSS = {id:'poganets', name:'Грицко-Ёпт', boss:true, hp:5000, grow:1.12, time:45, regen:.04, skin:0, hair:'#111111', hairH:-30, nose:-1, mus:true, beard:true, col:'#ff2e4d',
               need:10, reward:3000, rewardStars:5,
               sprite:'poganets', soon:false};   // soon:true — снова спрятать босса за «скоро»
 const charById = id => CHARS.find(c => c.id === id) || (id === BOSS.id ? BOSS : undefined);
@@ -516,7 +520,7 @@ const bossOpen = () => !BOSS.soon && totalKos() >= BOSS.need;
 const weapById = id => WEAPONS.find(w => w.id === id);
 
 /* ===== Прогресс ===== */
-let S = { coins:0, stars:50, powLvl:0, enLvl:0, energy:500, chars:[], weapons:['fist'], weapon:'fist', sel:'spartak', kos:{}, music:true };
+let S = { coins:0, stars:20, powLvl:0, enLvl:0, energy:500, chars:[], weapons:['fist'], weapon:'fist', sel:'spartak', kos:{}, music:true };
 try { const s = JSON.parse(localStorage.getItem('mordoboy4') || 'null'); if (s) S = Object.assign(S, s); } catch(e){}
 function save(){ S.ts = Date.now(); try { localStorage.setItem('mordoboy4', JSON.stringify(S)); } catch(e){} cloudSave(false); }
 /* ===== Игрок и облачные сохранения (CloudStorage Телеграма: прогресс общий на всех устройствах) ===== */
@@ -557,10 +561,11 @@ function cloudLoad(){
 }
 document.addEventListener('visibilitychange', () => { if (document.hidden) cloudSave(true); });
 const power = () => 1 + S.powLvl;
+const hpGrow = (c, k) => c.boss ? Math.min(4, Math.pow(1.12, k)) : Math.min(2.5, Math.pow(1.06, k));   // каждая победа делает соперника крепче
 const enMax = () => 500 + 250*S.enLvl;
 const regenEn = () => 3 + 1.5*S.enLvl;
-const powCost = () => Math.floor(40*Math.pow(1.7, S.powLvl));
-const enCost = () => Math.floor(60*Math.pow(1.6, S.enLvl));
+const powCost = () => Math.floor(100*Math.pow(1.5, S.powLvl));
+const enCost = () => Math.floor(120*Math.pow(1.5, S.enLvl));
 const kos = id => S.kos[id] || 0;
 const FIGHT_TIME = 30, IDLE_MS = 650;
 const BLOOD_FACE_HALF = 1.6, BLOOD_FLOOR_HALF = 6;   // за сколько секунд кровь бледнеет вдвое: лицо / пол
@@ -693,7 +698,7 @@ const REGK = Object.keys(REG);
 
 function makeOpp(c){
   const k = kos(c.id);
-  const o = { c, id:c.id, name:c.name, maxHp:Math.round(c.hp*Math.min(c.boss ? 4 : 3, Math.pow(c.boss ? 1.12 : 1.08, k))), dmg:{}, cutStage:{}, cuts:[], teeth:[1,1,1,1,1,1], teethHits:0,
+  const o = { c, id:c.id, name:c.name, maxHp:Math.round(c.hp*hpGrow(c, k)), dmg:{}, cutStage:{}, cuts:[], teeth:[1,1,1,1,1,1], teethHits:0,
     skin:SKINS[c.skin], hair:c.hair, hairH:c.hairH, noseDir:c.nose, mus:c.mus, beard:c.beard,
     lumps:Array.from({length:6},()=>({a:rnd(-Math.PI,Math.PI),s:rnd(6,14)})), ko:false };
   o.sprite = c.sprite ? SPRITES[c.sprite] : null;
@@ -797,10 +802,10 @@ function deb(kind, x, y, n, o){
    на серии: каждые 25 быстрых ударов — «Двоечка» (Антону вместо неё каждые 15 — бутылка);
    кнопки «Лещ» и «Бутылка» заряжаются ударами и бьют по нажатию. */
 const SPECIALS = {
-  lesch:  { name:'ЛЕЩ!',                 col:'#ff9f1c', pct:.05 },
-  bottle: { name:'БУТЫЛКОЙ ПО КУМПОЛУ!', col:'#7fe0ff', pct:.10 },
-  double: { name:'ДВОЕЧКА!',             col:'#ff2e4d', pct:.08 },
-  poo:    { name:'ГОВНОМ В ЕБАЛО!',      col:'#b07a3c', pct:.06 },
+  lesch:  { name:'ЛЕЩ!',                 col:'#ff9f1c', k:12 },
+  bottle: { name:'БУТЫЛКОЙ ПО КУМПОЛУ!', col:'#7fe0ff', k:25 },
+  double: { name:'ДВОЕЧКА!',             col:'#ff2e4d', k:16 },
+  poo:    { name:'ГОВНОМ В ЕБАЛО!',      col:'#b07a3c', k:10 },
 };
 const SKILL_NEED = id => ({ lesch:12, bottle: id === 'anton' ? 12 : 22, poo:18 });
 let skCh = { lesch:0, bottle:0, poo:0 };
@@ -839,9 +844,9 @@ function startSpecial(kind){
   spec = { kind, t:0, s: Math.random() < .5 ? -1 : 1, done:{} };
   if (audio()){ if (kind === 'bottle') tone(260, 900, .22, .07); else if (kind === 'lesch') nz(.12, 'highpass', 1800, .18); }
 }
-function specDamage(pct, sx, sy, dx, dy){
+function specDamage(k, sx, sy, dx, dy){
   if (opp.ko) return;
-  const dmg = Math.max(5, Math.round(opp.maxHp*pct + power()*3));
+  const dmg = Math.max(5, Math.round(k * power() * weapById(S.weapon).mult * rnd(.9, 1.1)));
   opp.hp = Math.max(0, opp.hp - dmg); opp.dirty = true; S.coins += dmg;
   floats.push({x:sx + rnd(-10,10), y:sy - 10, txt:'-'+dmg, t:0, crit:true});
   if (opp.hp <= 0) knockOut(sx, sy, dx, dy);
@@ -869,7 +874,7 @@ function specBottleHit(){
   }
   haptic('heavy'); setTimeout(() => haptic('heavy'), 90);
   specLine('bottle'); qEvent('bottle');
-  koSrc = 'bottle'; specDamage(SPECIALS.bottle.pct, hx, hy, 0, -1); koSrc = '';
+  koSrc = 'bottle'; specDamage(SPECIALS.bottle.k, hx, hy, 0, -1); koSrc = '';
 }
 function specLeschHit(){
   const [cx, cy] = headMid(), s = spec.s, RG = opp.reg, ck = s > 0 ? RG.cheekR : RG.cheekL;
@@ -888,7 +893,7 @@ function specLeschHit(){
   if (audio()){ nz(.09, 'bandpass', 2600, 1.1, 1.8); tone(420, 140, .09, .45); }
   haptic('heavy');
   specLine('lesch'); qEvent('lesch');
-  specDamage(SPECIALS.lesch.pct, sx, sy, -s, 0);
+  specDamage(SPECIALS.lesch.k, sx, sy, -s, 0);
 }
 function specDoubleHit(n){
   const RG = opp.reg, r = n === 1 ? RG.jaw : (Math.random() < .5 ? RG.eyeL : RG.eyeR);
@@ -903,7 +908,7 @@ function specDoubleHit(n){
   if (audio()){ tone(130, 40, .2, .9); nz(.08, 'lowpass', 900, .6); }
   haptic('heavy');
   if (n === 2){ burst(sx, sy - 60, SPECIALS.double.name, SPECIALS.double.col, true); specLine('double'); qEvent('double'); }
-  specDamage(SPECIALS.double.pct/2, sx, sy, dx, dy);
+  specDamage(SPECIALS.double.k/2, sx, sy, dx, dy);
 }
 /* ===== ГОВНО: бросок по дуге, шлепок, вонь, мухи ===== */
 const POO_T = .5, flies = []; let stinkT = 0, pooUntil = 0;
@@ -961,7 +966,7 @@ function specPooHit(){
   }
   haptic('heavy'); setTimeout(() => haptic('heavy'), 120);
   specLine('poo'); qEvent('poo');
-  specDamage(SPECIALS.poo.pct, hx, hy, 0, -1);
+  specDamage(SPECIALS.poo.k, hx, hy, 0, -1);
 }
 function updFlies(dt){
   if (stinkT > 0){ stinkT -= dt; if (Math.random() < dt*3 && opp && !opp.ko){ const [hx, hy] = headMid(); deb('stink', hx + rnd(-60,60), hy - rnd(0,60), 1, {dir:-Math.PI/2, spread:.4, smin:.3, smax:1, g:-.02, lmin:1.5, lmax:2.5, rmin:12, rmax:22}); } }
@@ -2057,7 +2062,7 @@ function getPortrait(it){
   return pc;
 }
 const fmt = n => Math.floor(n).toLocaleString('ru-RU');
-const hpOf = c => Math.round(c.hp*Math.min(c.boss ? 4 : 3, Math.pow(c.boss ? 1.12 : 1.08, kos(c.id))));
+const hpOf = c => Math.round(c.hp*hpGrow(c, kos(c.id)));
 let toastT = 0;
 function toast(html, ms=2200){ const t = el('toast'); t.innerHTML = html; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, ms); }
 const ownedChars = () => [...CHARS.filter(c => S.chars.includes(c.id)), ...(bossOpen() ? [BOSS] : [])];
@@ -2441,6 +2446,19 @@ el('tbChars').onclick = () => showPane('chars');
 el('tbWeap').onclick = () => showPane('weap');
 el('tbUp').onclick = () => showPane('up');
 el('tbQuest').onclick = () => showPane('quest');
+function resetProgress(){
+  const keep = { pid:S.pid, psec:S.psec, music:S.music, gift:S.gift, q:S.q };
+  if (S.q) S.q.list.forEach(o => { o.p = 0; o.done = false; });
+  S = Object.assign({ coins:0, stars:20, powLvl:0, enLvl:0, energy:500, chars:[], weapons:['fist'], weapon:'fist', sel:'spartak', kos:{}, music:true }, keep);
+  fixState(); S.energy = enMax(); viewId = S.sel; stageW = 0;
+  save(); cloudSave(true); renderMenu(); showPane('ring');
+  toast('↺ Всё с нуля. Кому набьём ебало?', 2600);
+}
+el('resetBtn').onclick = () => {
+  const msg = 'Начать заново? Монеты, звёзды, прокачка, оружие и открытые бойцы обнулятся.';
+  try { if (TG && TG.showConfirm && TG.isVersionAtLeast && TG.isVersionAtLeast('6.2')){ TG.showConfirm(msg, ok => { if (ok) resetProgress(); }); return; } } catch(e){}
+  if (window.confirm(msg)) resetProgress();
+};
 el('tbTop').onclick = () => showPane('top');
 el('topWeek').onclick = () => { topScope = 'week'; renderTop(); };
 el('topAll').onclick = () => { topScope = 'all'; renderTop(); };

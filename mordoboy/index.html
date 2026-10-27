@@ -168,6 +168,18 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 .stage{position:relative;flex:1;min-height:0;border-radius:18px;overflow:hidden;background:#12051f;box-shadow:0 0 0 2px rgba(255,255,255,.06) inset}
 #cv{display:block;width:100%;height:100%;touch-action:none;cursor:pointer}
 .chip{position:absolute;top:10px;left:10px;font-family:var(--display);font-size:12px;letter-spacing:.04em;color:#12051f;background:var(--gold);padding:4px 9px;border-radius:999px;pointer-events:none;box-shadow:0 2px 0 rgba(0,0,0,.4)}
+.skill{position:absolute;bottom:34px;left:10px;width:74px;height:74px;border-radius:50%;border:0;padding:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--display);color:#fff;background:conic-gradient(var(--gold) calc(var(--p,0)*1turn),rgba(255,255,255,.14) 0);box-shadow:0 4px 0 #120624;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
+.skill::before{content:'';position:absolute;inset:5px;border-radius:50%;background:#1d0a33}
+.skill>*{position:relative}
+.skill.r{left:auto;right:10px}
+.skill .skIco{font-size:27px;line-height:1}
+.skill canvas{width:18px;height:29px}
+.skill .skLbl{font-size:10px;letter-spacing:.04em;margin-top:3px}
+.skill:not(.ready){filter:saturate(.5) brightness(.8)}
+.skill.ready{background:conic-gradient(#ffc93c 1turn,#ffc93c 0);box-shadow:0 4px 0 #120624,0 0 18px #ff7a2e;animation:skPulse .7s ease-in-out infinite}
+.skill.ready::before{background:radial-gradient(circle at 50% 40%,#ff7a2e,#7a0a22)}
+@keyframes skPulse{50%{transform:scale(1.08)}}
+@media (prefers-reduced-motion:reduce){.skill.ready{animation:none}}
 .comboNext{position:absolute;top:38px;right:12px;font-family:var(--display);font-size:14px;color:#fff;opacity:.9;text-shadow:0 2px 0 #000;pointer-events:none}
 .combo{position:absolute;top:8px;right:12px;font-family:var(--display);font-size:22px;color:var(--gold);text-shadow:0 3px 0 #000,0 0 14px var(--hot2);pointer-events:none}
 .status{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-family:var(--display);font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.75);text-shadow:0 2px 0 #000;pointer-events:none}
@@ -219,7 +231,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       </button>
       <button class="go" id="go" type="button"><span class="goGlove">🥊</span> В БОЙ</button>
       <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
-      <div class="verTag">v37</div>
+      <div class="verTag">v38</div>
     </div>
 
     <div class="pane" id="paneChars" hidden>
@@ -260,6 +272,8 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="chip" id="chip">Кулаки</div>
       <div class="combo" id="combo"></div><div class="comboNext" id="comboNext"></div>
       <div class="status" id="status">Хуярь по ебалу</div>
+      <button class="skill" id="skLesch" type="button" aria-label="Дать леща"><span class="skIco">🖐️</span><span class="skLbl">ЛЕЩ</span></button>
+      <button class="skill r" id="skBottle" type="button" aria-label="Бутылкой по голове"><canvas id="skBottleIco" width="60" height="96" aria-hidden="true"></canvas><span class="skLbl">БУТЫЛКА</span></button>
       <div class="result" id="result" hidden>
         <strong id="resT">ЕБАЛО НАБИТО</strong>
         <p id="resP"></p>
@@ -279,7 +293,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 37;
+const GAME_VERSION = 38;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -581,7 +595,7 @@ function startFight(){
   const g = floorL.g; g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='rgba(0,0,0,.5)'; g.fillRect(0,0,W,H); g.restore();
   rec = {x:0,y:-40,a:0,vx:0,vy:6,va:0,sq:0,vsq:0}; koT = -1; sprLayerFor = null; timeLeft = opp.c.time || FIGHT_TIME;
   say = null; saidLow = false; idleSaid = false; fin = null;
-  opp.bs = opp.c.boss ? { guard:false, next: performance.now() + 2500, until:0 } : null; combo = 0; lastHit = performance.now(); stun = 0; flash = 0; spec = null;
+  opp.bs = opp.c.boss ? { guard:false, next: performance.now() + 2500, until:0 } : null; combo = 0; lastHit = performance.now(); stun = 0; flash = 0; spec = null; skCh = { lesch:0, bottle:0 };
   paused = false; el('quit').hidden = true; el('tut').hidden = !!S.tut1;
   $('result').hidden = true; $('status').textContent = 'Хуярь по ебалу'; $('status').className = 'status';
   $('chip').textContent = weapById(S.weapon).name;
@@ -655,13 +669,30 @@ function deb(kind, x, y, n, o){
   }
 }
 /* ===== КОМБО-ПРИЁМЫ: на серии быстрых ударов срабатывает приём =====
-   все: 10 — «Лещ», 20 — «Бутылкой по кумполу», 30 — «Двоечка», дальше по кругу;
-   Антону-алкашу бутылка прилетает каждые 10 ударов, лещ — на 5, 15, 25... */
+   на серии: каждые 25 быстрых ударов — «Двоечка» (Антону вместо неё каждые 15 — бутылка);
+   кнопки «Лещ» и «Бутылка» заряжаются ударами и бьют по нажатию. */
 const SPECIALS = {
   lesch:  { name:'ЛЕЩ!',                 col:'#ff9f1c', pct:.05 },
   bottle: { name:'БУТЫЛКОЙ ПО КУМПОЛУ!', col:'#7fe0ff', pct:.10 },
   double: { name:'ДВОЕЧКА!',             col:'#ff2e4d', pct:.08 },
 };
+const SKILL_NEED = id => ({ lesch:12, bottle: id === 'anton' ? 12 : 22 });
+let skCh = { lesch:0, bottle:0 };
+function skillCharge(){
+  if (!opp || opp.ko) return; const need = SKILL_NEED(opp.id);
+  for (const k of ['lesch','bottle']){
+    if (skCh[k] >= need[k]) continue;
+    if (++skCh[k] >= need[k]){ const [x, y] = headMid(); burst(k === 'lesch' ? 70 : W-70, H - 160, k === 'lesch' ? 'ЛЕЩ ГОТОВ!' : 'БУТЫЛКА!', SPECIALS[k].col, false); haptic('light'); }
+  }
+}
+function useSkill(k){
+  if (mode !== 'fight' || !opp || opp.ko || paused) return;
+  const need = SKILL_NEED(opp.id)[k];
+  if (skCh[k] < need){ toast(`${k === 'lesch' ? 'Лещ' : 'Бутылка'}: ещё <b>${need - skCh[k]}</b> ударов`, 1100); return; }
+  if (spec) return;
+  if (!el('tut').hidden){ el('tut').hidden = true; S.tut1 = true; save(); }
+  skCh[k] = 0; lastHit = performance.now(); startSpecial(k);
+}
 const SPEC_HINT = { lesch:'Лещ', bottle:'Бутылка', double:'Двоечка' };
 const SPEC_LINES = {
   lesch:  ['За что леща-то?!', 'Ухо горит!', 'Аж зазвенело...'],
@@ -670,8 +701,8 @@ const SPEC_LINES = {
 };
 function specialAt(n, id){
   if (n <= 0) return null;
-  if (id === 'anton') return n % 10 === 0 ? 'bottle' : n % 10 === 5 ? 'lesch' : null;
-  const r = n % 30; return r === 10 ? 'lesch' : r === 20 ? 'bottle' : r === 0 ? 'double' : null;
+  if (id === 'anton') return n % 15 === 0 ? 'bottle' : null;
+  return n % 25 === 0 ? 'double' : null;
 }
 function nextSpecial(n, id){ for (let m = n+1; m <= n+30; m++){ const k = specialAt(m, id); if (k) return {k, in:m-n}; } return null; }
 let spec = null;
@@ -749,11 +780,14 @@ function specDoubleHit(n){
 }
 function updSpecial(dt){
   if (!spec) return;
-  spec.t += dt; const t = spec.t, d = spec.done;
-  if (opp.ko && !d.end){ spec = null; return; }
-  if (spec.kind === 'bottle' && t >= .24 && !d.a){ d.a = 1; specBottleHit(); }
-  if (spec.kind === 'lesch' && t >= .13 && !d.a){ d.a = 1; specLeschHit(); }
-  if (spec.kind === 'double'){ if (t >= .02 && !d.a){ d.a = 1; specDoubleHit(1); } if (t >= .2 && !d.b){ d.b = 1; specDoubleHit(2); } }
+  spec.t += dt; const t = spec.t, d = spec.done, kind = spec.kind;
+  if (opp.ko){ spec = null; return; }
+  if (kind === 'bottle' && t >= .24 && !d.a){ d.a = 1; specBottleHit(); }
+  else if (kind === 'lesch' && t >= .13 && !d.a){ d.a = 1; specLeschHit(); }
+  else if (kind === 'double'){
+    if (t >= .02 && !d.a){ d.a = 1; specDoubleHit(1); }
+    if (spec && !opp.ko && t >= .2 && !d.b){ d.b = 1; specDoubleHit(2); }
+  }
   if (spec && t > .6) spec = null;
 }
 function drawBottle(g, x, y, ang, sc){
@@ -1105,7 +1139,7 @@ function hit(px, py){
     else if (Math.random() < .14) speak(pick(PHRASES.hurt));
   }
   if (opp.hp <= 0) knockOut(sx, sy, dx, dy);
-  else if (!spec){ const sk = specialAt(combo, opp.id); if (sk) startSpecial(sk); }
+  else { skillCharge(); if (!spec){ const sk = specialAt(combo, opp.id); if (sk) startSpecial(sk); } }
 }
 function knockOut(sx, sy, dx, dy){
   if (opp.ko) return;
@@ -1589,6 +1623,9 @@ function adaptQuality(rawDt){
   }
 }
 function frame(now){
+  try { frameInner(now); } catch(e){ console.error(e); requestAnimationFrame(frame); }
+}
+function frameInner(now){
   const rawDt = (now-last)/1000;
   const dt = Math.min(.05, rawDt); last = now;
   adaptQuality(rawDt);
@@ -1727,7 +1764,7 @@ const uiCache = {}, elCache = {};
 const el = id => elCache[id] || (elCache[id] = document.getElementById(id));
 function setUI(id, prop, val){ const key = id + '.' + prop; if (uiCache[key] === val) return; uiCache[key] = val;
   const e = el(id); if (prop === 'text') e.textContent = val; else if (prop === 'html') e.innerHTML = val; else if (prop === 'class') e.className = val;
-  else if (prop === 'width') e.style.width = val; else if (prop === 'disabled') e.disabled = val; else if (prop === 'hiddenP') e.hidden = val; }
+  else if (prop === 'width') e.style.width = val; else if (prop === 'p') e.style.setProperty('--p', val); else if (prop === 'disabled') e.disabled = val; else if (prop === 'hiddenP') e.hidden = val; }
 function fightUI(regenOn){
   setUI('coins','text', Math.floor(S.coins).toLocaleString('ru-RU'));
   const tl = Math.ceil(timeLeft); setUI('timer','text', '0:' + String(tl).padStart(2,'0')); setUI('timer','class', 'timer' + (tl <= 10 ? ' low' : ''));
@@ -1740,6 +1777,10 @@ function fightUI(regenOn){
   const live = combo > 2 && performance.now()-lastHit < 600, nx = live ? nextSpecial(combo, opp.id) : null;
   setUI('combo','text', live ? 'КОМБО ×' + mult.toFixed(2) : '');
   setUI('comboNext','text', nx && nx.in <= 6 ? SPEC_HINT[nx.k] + ' через ' + nx.in : '');
+  const need = SKILL_NEED(opp.id);
+  for (const [k, id] of [['lesch','skLesch'], ['bottle','skBottle']]){
+    const pr = Math.min(1, skCh[k]/need[k]); setUI(id, 'p', pr.toFixed(3)); setUI(id, 'class', 'skill' + (id === 'skBottle' ? ' r' : '') + (pr >= 1 ? ' ready' : ''));
+  }
 }
 
 let tab = 'chars';
@@ -2016,6 +2057,10 @@ CHARS.forEach(c => { if (c.gold === 0 && !S.chars.includes(c.id)) S.chars.push(c
 if (!S.chars.includes(S.sel) && !(S.sel === BOSS.id && bossOpen())) S.sel = CHARS[0].id;
 if (!S.weapons.includes(S.weapon)) S.weapon = 'fist';
 $('musM').onclick = e => { e.stopPropagation(); toggleMusic(); };
+for (const [id, k] of [['skLesch','lesch'], ['skBottle','bottle']]){
+  const b = $(id); b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); if (AC && AC.state === 'suspended') AC.resume(); useSkill(k); });
+}
+{ const bc = $('skBottleIco').getContext('2d'); bc.clearRect(0,0,60,96); drawBottle(bc, 30, 58, 0, .62); }
 $('musF').onclick = e => { e.stopPropagation(); toggleMusic(); };
 $('musM').addEventListener('pointerdown', e => e.stopPropagation());
 $('musF').addEventListener('pointerdown', e => e.stopPropagation());

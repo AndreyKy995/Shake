@@ -216,6 +216,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 .skill::before{content:'';position:absolute;inset:5px;border-radius:50%;background:#1d0a33}
 .skill>*{position:relative}
 .skill.r{left:auto;right:10px}
+.skill.c{left:50%;margin-left:-37px}
 .skill .skIco{font-size:27px;line-height:1}
 .skill canvas{width:18px;height:29px}
 .skill .skLbl{font-size:10px;letter-spacing:.04em;margin-top:3px}
@@ -226,7 +227,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 @media (prefers-reduced-motion:reduce){.skill.ready{animation:none}}
 .comboNext{position:absolute;top:38px;right:12px;font-family:var(--display);font-size:14px;color:#fff;opacity:.9;text-shadow:0 2px 0 #000;pointer-events:none}
 .combo{position:absolute;top:8px;right:12px;font-family:var(--display);font-size:22px;color:var(--gold);text-shadow:0 3px 0 #000,0 0 14px var(--hot2);pointer-events:none}
-.status{position:absolute;bottom:10px;left:0;right:0;text-align:center;font-family:var(--display);font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.75);text-shadow:0 2px 0 #000;pointer-events:none}
+.status{position:absolute;bottom:112px;left:0;right:0;text-align:center;font-family:var(--display);font-size:13px;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.75);text-shadow:0 2px 0 #000;pointer-events:none}
 .status.warn{color:var(--lime)}
 .result{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:16px;text-align:center;background:radial-gradient(circle,rgba(120,10,60,.55),rgba(10,0,20,.75) 75%)}
 .result strong{font-family:var(--display);font-size:clamp(36px,11vw,60px);line-height:1;color:var(--gold);text-shadow:0 4px 0 var(--hot),0 8px 0 #3a0820,0 0 30px #000;transform:rotate(-5deg)}
@@ -278,7 +279,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="coach" id="coach" hidden><span id="coachTxt"></span><button type="button" id="coachOk">Понял</button></div>
       <button class="go" id="go" type="button"><span class="goGlove">🥊</span> В БОЙ</button>
       <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
-      <div class="verTag">v41</div>
+      <div class="verTag">v42</div>
     </div>
 
     <div class="pane" id="paneChars" hidden>
@@ -335,6 +336,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       <div class="combo" id="combo"></div><div class="comboNext" id="comboNext"></div>
       <div class="status" id="status">Хуярь по ебалу</div>
       <button class="skill" id="skLesch" type="button" aria-label="Дать леща"><span class="skIco">🖐️</span><span class="skLbl">ЛЕЩ</span></button>
+      <button class="skill c" id="skPoo" type="button" aria-label="Кинуть говном"><span class="skIco">💩</span><span class="skLbl">ГОВНО</span></button>
       <button class="skill r" id="skBottle" type="button" aria-label="Бутылкой по голове"><canvas id="skBottleIco" width="60" height="96" aria-hidden="true"></canvas><span class="skLbl">БУТЫЛКА</span></button>
       <div class="result" id="result" hidden>
         <strong id="resT">ЕБАЛО НАБИТО</strong>
@@ -355,7 +357,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 41;
+const GAME_VERSION = 42;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -425,10 +427,11 @@ const PHRASES = {
                 idle:['Вадик ещё стоит!', 'Мой автобус через минуту', 'Бей быстрее, у меня маршрутка', 'Я тут проездом', 'Вадик всегда в пути'] },
     benych:   { ko:['Поддоны... мои поддоны...', 'Положите меня на поддон...', 'Беныч... отгружен...'],
                 idle:['Беныч на районе!', 'Ещё стопочку и продолжим', 'Я поддоны голыми руками ломаю', 'Ты кто такой вообще?', 'Беныч вам не грузчик'] },
-    kachalkin:{ ko:['Мои банки... сдулись...', 'Протеин... дайте протеин...', 'Сегодня был не день ног...'],
+    kachalkin:{ poo:['Это не протеин!!!', 'Мне это в рацион не входит!'], ko:['Мои банки... сдулись...', 'Протеин... дайте протеин...', 'Сегодня был не день ног...'],
                 idle:['Я жму сотку, а ты?', 'Протеин не пролей', 'Сегодня день лица', 'Подходы считаешь?', 'Это не жир, это масса', 'Сфоткай меня, пока не опух'] },
     anton:    { ko:['Налейте... на посошок...', 'Я... не пьяный... я в нокауте...', 'Утром... рассольчику...'],
                 idle:['Братан, дай полтинник', 'Я не пьяный, я уставший', 'Шо смотришь? Наливай', 'Ик!', 'Я сегодня за рулём... дивана', 'Пиво не алкоголь, это хлеб жидкий', 'Бей, но бутылку не трогай'],
+                poo:['Хоть бы закусить дал...', 'Я и так не пахну розами'],
                 bottle:['Не об голову! Там ещё оставалось!', 'Мою беленькую!!!', 'Это была последняя...', 'Хоть занюхать дай', 'Перевод продукта, сука!'] },
     senatov:  { ko:['Сенат распущен...', 'Заседание... окончено...', 'Голосую... против...'],
                 idle:['Вася в деле!', 'Сенатов не сдаётся', 'Ну давай, давай', 'Чё косишься?', 'Вася решает вопросы', 'Пуховик не порви, он новый'] },
@@ -716,7 +719,7 @@ function startFight(){
   const g = floorL.g; g.save(); g.globalCompositeOperation='destination-out'; g.fillStyle='rgba(0,0,0,.5)'; g.fillRect(0,0,W,H); g.restore();
   rec = {x:0,y:-40,a:0,vx:0,vy:6,va:0,sq:0,vsq:0}; koT = -1; sprLayerFor = null; timeLeft = opp.c.time || FIGHT_TIME;
   say = null; saidLow = false; idleSaid = false; fin = null;
-  opp.bs = opp.c.boss ? { guard:false, next: performance.now() + 2500, until:0 } : null; combo = 0; lastHit = performance.now(); stun = 0; flash = 0; spec = null; skCh = { lesch:0, bottle:0 };
+  opp.bs = opp.c.boss ? { guard:false, next: performance.now() + 2500, until:0 } : null; combo = 0; lastHit = performance.now(); stun = 0; flash = 0; spec = null; skCh = { lesch:0, bottle:0, poo:0 }; flies.length = 0; stinkT = 0; pooUntil = 0;
   paused = false; el('quit').hidden = true; el('tut').hidden = !!S.tut1;
   $('result').hidden = true; $('status').textContent = 'Хуярь по ебалу'; $('status').className = 'status';
   $('chip').textContent = weapById(S.weapon).name;
@@ -773,6 +776,7 @@ function floorStain(x, y, r, kind){
   if (kind === 't'){ g.fillStyle='#efe9dc'; g.fillRect(x-2,y-3,4,6); return; }
   if (kind === 'shard'){ g.fillStyle='#b04a2c'; g.fillRect(x-r,y-r*.5,r*2,r); return; }
   if (kind === 'scale'){ g.fillStyle='rgba(220,235,250,.9)'; g.fillRect(x-1.5,y-1,3,2); return; }
+  if (kind === 'poo'){ g.fillStyle='rgba(95,55,20,.9)'; g.beginPath(); g.ellipse(x,y,r*1.6,r*.6,0,0,6.28); g.fill(); return; }
   if (kind === 'glassf'){ g.fillStyle='rgba(215,242,255,.85)'; g.beginPath(); g.moveTo(x-r,y); g.lineTo(x+r*.8,y-r*.4); g.lineTo(x+r*.3,y+r*.4); g.closePath(); g.fill(); return; }
   if (kind === 'label'){ g.fillStyle='#f2f2f2'; g.fillRect(x-r,y-r*.4,r*2,r*.8); g.fillStyle='#c8102e'; g.fillRect(x-r,y-r*.15,r*2,r*.3); return; }
   if (kind === 'splinter'){ g.fillStyle='#c79552'; g.fillRect(x-r*1.5,y-1,r*3,2); return; }
@@ -780,8 +784,8 @@ function floorStain(x, y, r, kind){
   g.beginPath(); g.ellipse(x,y,r*1.8,r*0.7,0,0,6.28); g.fill();
   for (let i=0;i<3;i++){ g.beginPath(); g.ellipse(x+rnd(-r*4,r*4), y+rnd(-r,r), r*rnd(.2,.5), r*rnd(.1,.25),0,0,6.28); g.fill(); }
 }
-function screenSplat(x,y,r){
-  splats.push({x,y,a:.9,blobs:Array.from({length:10},()=>({a:rnd(0,6.28),d:rnd(0,r),r:rnd(r*.15,r*.45)})),drops:Array.from({length:3},()=>({x:rnd(-r*.6,r*.6),len:rnd(10,r*2)}))});
+function screenSplat(x,y,r,col){
+  splats.push({x,y,a:.9,col,blobs:Array.from({length:10},()=>({a:rnd(0,6.28),d:rnd(0,r),r:rnd(r*.15,r*.45)})),drops:Array.from({length:3},()=>({x:rnd(-r*.6,r*.6),len:rnd(10,r*2)}))});
 }
 function deb(kind, x, y, n, o){
   for (let i=0;i<n;i++){
@@ -796,20 +800,21 @@ const SPECIALS = {
   lesch:  { name:'ЛЕЩ!',                 col:'#ff9f1c', pct:.05 },
   bottle: { name:'БУТЫЛКОЙ ПО КУМПОЛУ!', col:'#7fe0ff', pct:.10 },
   double: { name:'ДВОЕЧКА!',             col:'#ff2e4d', pct:.08 },
+  poo:    { name:'ГОВНОМ В ЕБАЛО!',      col:'#b07a3c', pct:.06 },
 };
-const SKILL_NEED = id => ({ lesch:12, bottle: id === 'anton' ? 12 : 22 });
-let skCh = { lesch:0, bottle:0 };
+const SKILL_NEED = id => ({ lesch:12, bottle: id === 'anton' ? 12 : 22, poo:18 });
+let skCh = { lesch:0, bottle:0, poo:0 };
 function skillCharge(){
   if (!opp || opp.ko) return; const need = SKILL_NEED(opp.id);
-  for (const k of ['lesch','bottle']){
+  for (const k of ['lesch','bottle','poo']){
     if (skCh[k] >= need[k]) continue;
-    if (++skCh[k] >= need[k]){ const [x, y] = headMid(); burst(k === 'lesch' ? 70 : W-70, H - 160, k === 'lesch' ? 'ЛЕЩ ГОТОВ!' : 'БУТЫЛКА!', SPECIALS[k].col, false); haptic('light'); }
+    if (++skCh[k] >= need[k]){ burst(k === 'lesch' ? 70 : k === 'poo' ? W/2 : W-70, H - 160, {lesch:'ЛЕЩ ГОТОВ!', bottle:'БУТЫЛКА!', poo:'ГОВНО ГОТОВО!'}[k], SPECIALS[k].col, false); haptic('light'); }
   }
 }
 function useSkill(k){
   if (mode !== 'fight' || !opp || opp.ko || paused) return;
   const need = SKILL_NEED(opp.id)[k];
-  if (skCh[k] < need){ toast(`${k === 'lesch' ? 'Лещ' : 'Бутылка'}: ещё <b>${need - skCh[k]}</b> ударов`, 1100); return; }
+  if (skCh[k] < need){ toast(`${{lesch:'Лещ', bottle:'Бутылка', poo:'Говно'}[k]}: ещё <b>${need - skCh[k]}</b> ударов`, 1100); return; }
   if (spec) return;
   if (!el('tut').hidden){ el('tut').hidden = true; S.tut1 = true; save(); }
   skCh[k] = 0; lastHit = performance.now(); startSpecial(k);
@@ -819,6 +824,7 @@ const SPEC_LINES = {
   lesch:  ['За что леща-то?!', 'Ухо горит!', 'Аж зазвенело...'],
   bottle: ['Ай, моя голова!', 'Стекло в волосах!', 'Ты чё, бутылкой?!'],
   double: ['Двоечку не ждал...', 'Раз-два, и я в звёздах'],
+  poo:    ['Фу, бля!!!', 'Это что, говно?!', 'Сука, оно тёплое!', 'Я теперь так и пойду?!', 'Ты где его взял?!', 'Пиздец, воняет!', 'Это моё лицо, а не унитаз!'],
 };
 function specialAt(n, id){
   if (n <= 0) return null;
@@ -899,17 +905,93 @@ function specDoubleHit(n){
   if (n === 2){ burst(sx, sy - 60, SPECIALS.double.name, SPECIALS.double.col, true); specLine('double'); qEvent('double'); }
   specDamage(SPECIALS.double.pct/2, sx, sy, dx, dy);
 }
+/* ===== ГОВНО: бросок по дуге, шлепок, вонь, мухи ===== */
+const POO_T = .5, flies = []; let stinkT = 0, pooUntil = 0;
+function drawPoo(g, x, y, ang, sc){
+  g.save(); g.translate(x, y); g.rotate(ang); g.scale(sc, sc);
+  g.lineWidth = 3; g.strokeStyle = '#2a1606';
+  const tier = (cy, rx, ry, c1, c2) => { const gr = g.createLinearGradient(0, cy - ry, 0, cy + ry); gr.addColorStop(0, c1); gr.addColorStop(1, c2); g.fillStyle = gr; g.beginPath(); g.ellipse(0, cy, rx, ry, 0, 0, 6.28); g.fill(); g.stroke(); };
+  tier(14, 30, 13, '#8a5526', '#5a3312'); tier(0, 23, 11, '#9a6230', '#62391a'); tier(-13, 15, 9, '#a86c36', '#6a3f1c');
+  g.fillStyle = '#a86c36'; g.beginPath(); g.moveTo(-6, -19); g.quadraticCurveTo(2, -36, 10, -30); g.quadraticCurveTo(4, -26, 6, -19); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = 'rgba(255,230,190,.55)'; g.beginPath(); g.ellipse(-10, 9, 9, 3.5, -.3, 0, 6.28); g.fill(); g.beginPath(); g.ellipse(-7, -4, 6, 2.5, -.3, 0, 6.28); g.fill(); g.beginPath(); g.ellipse(-4, -16, 4, 2, -.3, 0, 6.28); g.fill();
+  g.restore();
+}
+function pooPath(t){
+  const [hx, hy] = headMid(), k = Math.min(1, t/POO_T), sx = W/2 + spec.s*60, sy = H + 50;
+  const x = sx + (hx - sx)*k, y = sy + (hy - sy)*k - Math.sin(k*Math.PI)*260;
+  return [x, y, k];
+}
+function stinkWave(g, x, y, h, a, ph){
+  g.save(); g.strokeStyle = `rgba(140,200,70,${a})`; g.lineWidth = 4; g.lineCap = 'round'; g.beginPath();
+  for (let i=0;i<=12;i++){ const yy = y - i*h/12, xx = x + Math.sin(i*.9 + ph)*7; i ? g.lineTo(xx, yy) : g.moveTo(xx, yy); }
+  g.stroke(); g.restore();
+}
+function specPooHit(){
+  const [hx, hy] = headMid(), RG = opp.reg, fg = faceL.g, cx = RG.nose.x + W/2, cy = RG.nose.y + H/2 - 10;
+  // клякса на лице: пятно, брызги, потёки
+  const browns = ['#5a3312', '#6e4019', '#7d4a1e', '#8a5526', '#4a2a0e'];
+  fg.save();
+  for (let i=0;i<46;i++){ const a = rnd(0,6.28), d = rnd(0, i < 16 ? 30 : 78), r = i < 16 ? rnd(14,30) : rnd(4,14); fg.fillStyle = pick(browns); fg.globalAlpha = 1; fg.beginPath(); fg.ellipse(cx + Math.cos(a)*d, cy + Math.sin(a)*d*.85, r, r*rnd(.7,1), rnd(0,3), 0, 6.28); fg.fill(); }
+  fg.globalAlpha = 1; fg.fillStyle = '#5a3312'; fg.beginPath(); fg.ellipse(cx, cy, 34, 28, 0, 0, 6.28); fg.fill();
+  for (let i=0;i<9;i++){ const x = cx + rnd(-60,60), y0 = cy + rnd(-10,30), len = rnd(40,120), w = rnd(5,10); fg.fillStyle = pick(browns); fg.globalAlpha = 1; fg.fillRect(x - w/2, y0, w, len); fg.beginPath(); fg.arc(x, y0 + len, w*.85, 0, 6.28); fg.fill(); }
+  fg.globalAlpha = .5; fg.fillStyle = '#c99a5a'; for (let i=0;i<8;i++){ fg.beginPath(); fg.ellipse(cx + rnd(-30,30), cy + rnd(-25,20), rnd(3,7), rnd(1.5,3), rnd(0,3), 0, 6.28); fg.fill(); }
+  fg.restore();
+  // ошмётки, вонь, кольца
+  deb('poo', hx, hy, 26, {dir:-Math.PI/2, spread:2.8, smin:3, smax:11, g:.36, lmin:.8, lmax:1.5, rmin:3, rmax:8});
+  deb('stink', hx, hy - 20, 14, {dir:-Math.PI/2, spread:1.4, smin:.5, smax:2, g:-.03, lmin:1.6, lmax:2.6, rmin:16, rmax:30});
+  rings.push({x:hx, y:hy, t:0, col:'150,95,40', max:.45, r0:16, r1:140});
+  rings.push({x:hx, y:hy, t:-.07, col:'150,210,80', max:.5, r0:10, r1:110});
+  for (let i=0;i<3;i++) screenSplat(rnd(50, W-50), rnd(90, H*.6), rnd(30, 60), pick(['#6e4019', '#5a3312', '#7d4a1e']));
+  // мухи
+  for (let i=0;i<9;i++) flies.push({a:rnd(0,6.28), r:rnd(60,120), sp:rnd(2.5,5)*(Math.random()<.5?-1:1), ph:rnd(0,6.28), t:0, life:rnd(6,9)});
+  stinkT = 7; pooUntil = performance.now() + 3000;
+  rec.vsq += .38; rec.vy += 7; rec.va += spec.s*.08; stun = Math.max(stun, 3); lastHit = performance.now();
+  if (!reduceMotion) shake = Math.max(shake, 12); flash = .35; flashCol = '120,80,30';
+  burst(hx, hy - 120, SPECIALS.poo.name, SPECIALS.poo.col, true);
+  if (audio()){
+    nz(.35, 'lowpass', 420, .95); tone(190, 55, .32, .55); nz(.18, 'bandpass', 900, .5, 2.5);
+    for (let i=0;i<6;i++) setTimeout(() => tone(rnd(260,520), rnd(120,220), .07, .12, 'sine'), 60 + i*45);
+    try {   // жужжание мух
+      const o = AC.createOscillator(), lfo = AC.createOscillator(), lg = AC.createGain(), g = AC.createGain(), f = AC.createBiquadFilter(), t0 = AC.currentTime;
+      o.type = 'sawtooth'; o.frequency.value = 210; lfo.frequency.value = 9; lg.gain.value = 18; lfo.connect(lg).connect(o.frequency);
+      f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.2;
+      g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(.05, t0 + .4); g.gain.setValueAtTime(.05, t0 + 3.5); g.gain.linearRampToValueAtTime(0, t0 + 5);
+      o.connect(f).connect(g).connect(AC.destination); o.start(t0); lfo.start(t0); o.stop(t0 + 5.1); lfo.stop(t0 + 5.1);
+    } catch(e){}
+  }
+  haptic('heavy'); setTimeout(() => haptic('heavy'), 120);
+  specLine('poo'); qEvent('poo');
+  specDamage(SPECIALS.poo.pct, hx, hy, 0, -1);
+}
+function updFlies(dt){
+  if (stinkT > 0){ stinkT -= dt; if (Math.random() < dt*3 && opp && !opp.ko){ const [hx, hy] = headMid(); deb('stink', hx + rnd(-60,60), hy - rnd(0,60), 1, {dir:-Math.PI/2, spread:.4, smin:.3, smax:1, g:-.02, lmin:1.5, lmax:2.5, rmin:12, rmax:22}); } }
+  for (let i=flies.length-1;i>=0;i--){ const f = flies[i]; f.t += dt; f.a += f.sp*dt; if (f.t > f.life) flies.splice(i,1); }
+}
+function drawFlies(){
+  if (!flies.length || !opp) return;
+  const [hx, hy] = headMid(), now = performance.now()/1000;
+  for (const f of flies){
+    const a = Math.min(1, f.t*3, (f.life - f.t)*2);
+    const x = hx + Math.cos(f.a)*f.r + Math.sin(now*13 + f.ph)*6, y = hy - 30 + Math.sin(f.a*1.3)*f.r*.55 + Math.cos(now*17 + f.ph)*5;
+    ctx.globalAlpha = a;
+    ctx.fillStyle = 'rgba(220,235,255,.6)'; const wv = Math.abs(Math.sin(now*60 + f.ph))*4 + 2;
+    ctx.beginPath(); ctx.ellipse(x - 3, y - 4, wv, 2.5, -.5, 0, 6.28); ctx.ellipse(x + 3, y - 4, wv, 2.5, .5, 0, 6.28); ctx.fill();
+    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.ellipse(x, y, 4, 3, 0, 0, 6.28); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+}
 function updSpecial(dt){
   if (!spec) return;
   spec.t += dt; const t = spec.t, d = spec.done, kind = spec.kind;
   if (opp.ko){ spec = null; return; }
   if (kind === 'bottle' && t >= .24 && !d.a){ d.a = 1; specBottleHit(); }
   else if (kind === 'lesch' && t >= .13 && !d.a){ d.a = 1; specLeschHit(); }
+  else if (kind === 'poo' && t >= POO_T && !d.a){ d.a = 1; specPooHit(); }
   else if (kind === 'double'){
     if (t >= .02 && !d.a){ d.a = 1; specDoubleHit(1); }
     if (spec && !opp.ko && t >= .2 && !d.b){ d.b = 1; specDoubleHit(2); }
   }
-  if (spec && t > .6) spec = null;
+  if (spec && t > (kind === 'poo' ? .75 : .6)) spec = null;
 }
 function drawBottle(g, x, y, ang, sc){
   g.save(); g.translate(x, y); g.rotate(ang); g.scale(sc, sc);
@@ -925,8 +1007,16 @@ function drawBottle(g, x, y, ang, sc){
   g.restore();
 }
 function drawSpecial(){
+  drawFlies();
   if (!spec) return;
   const t = spec.t, s = spec.s;
+  if (spec.kind === 'poo' && t < POO_T){
+    const now = performance.now()/1000;
+    for (let i=6;i>=1;i--){ const [tx, ty, kk] = pooPath(Math.max(0, t - i*.03)); stinkWave(ctx, tx + rnd(-2,2), ty + 30, 30, .35*(1 - i/7), now*8 + i); }
+    for (let i=4;i>=1;i--){ const [tx, ty, kk] = pooPath(Math.max(0, t - i*.025)); ctx.globalAlpha = .12*(5-i); drawPoo(ctx, tx, ty, s*(t - i*.025)*14, 1.9 - 1.1*kk); }
+    ctx.globalAlpha = 1;
+    const [x, y, k] = pooPath(t); drawPoo(ctx, x, y, s*t*14, 1.9 - 1.1*k);
+  }
   if (spec.kind === 'bottle' && t < .24){
     const [hx, hy] = headTop(), k = t/.24, e = k*k;
     const x = hx + s*(200 - 180*e), y = hy - 300 + 290*e, a = s*(-2.6 + 3.1*e);
@@ -1661,6 +1751,14 @@ function drawDebris(){
       ctx.beginPath(); ctx.moveTo(-p.size, -p.size*.5); ctx.lineTo(p.size*.9, -p.size*.8); ctx.lineTo(p.size*.3, p.size); ctx.closePath(); ctx.fill(); ctx.stroke();
       ctx.restore(); continue;
     }
+    if (p.kind === 'poo'){
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = (p.size > 5) ? '#6e4019' : '#8a5526'; ctx.strokeStyle = '#2a1606'; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.ellipse(0, 0, p.size, p.size*.7, 0, 0, 6.28); ctx.fill(); ctx.stroke(); ctx.restore(); continue;
+    }
+    if (p.kind === 'stink'){
+      const r = p.size*(1.5 - k*.7); ctx.fillStyle = `rgba(130,190,60,${.28*k})`; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, 6.28); ctx.fill();
+      ctx.fillStyle = `rgba(170,220,90,${.2*k})`; ctx.beginPath(); ctx.arc(p.x + r*.4, p.y - r*.3, r*.6, 0, 6.28); ctx.fill(); continue;
+    }
     if (p.kind === 'label'){
       ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot); ctx.fillStyle = '#fff'; ctx.fillRect(-p.size, -p.size*.6, p.size*2, p.size*1.2);
       ctx.fillStyle = '#d4142b'; ctx.fillRect(-p.size, -p.size*.25, p.size*2, p.size*.45); ctx.restore(); continue;
@@ -1727,7 +1825,7 @@ function drawRings(){
 }
 function drawSplats(){
   for (const s of splats){
-    ctx.globalAlpha = Math.max(0, s.a); ctx.fillStyle = '#9a0718';
+    ctx.globalAlpha = Math.max(0, s.a); ctx.fillStyle = s.col || '#9a0718';
     for (const b of s.blobs){ ctx.beginPath(); ctx.arc(s.x+Math.cos(b.a)*b.d, s.y+Math.sin(b.a)*b.d, b.r, 0, 6.28); ctx.fill(); }
     for (const d of s.drops){ ctx.fillRect(s.x+d.x-2, s.y, 4, d.len); ctx.beginPath(); ctx.arc(s.x+d.x, s.y+d.len, 3.5, 0, 6.28); ctx.fill(); }
   }
@@ -1762,7 +1860,7 @@ function frameInner(now){
   let regenOn = false;
   if (mode === 'fight' && !opp.ko && !paused){
     timeLeft -= dt;
-    if (now - lastHit > IDLE_MS && opp.hp < opp.maxHp){ opp.hp = Math.min(opp.maxHp, opp.hp + opp.maxHp*opp.c.regen*dt); regenOn = true;
+    if (now - lastHit > IDLE_MS && now > pooUntil && opp.hp < opp.maxHp){ opp.hp = Math.min(opp.maxHp, opp.hp + opp.maxHp*opp.c.regen*dt); regenOn = true;
       if (!idleSaid && now - lastHit > 1100){ idleSaid = true; if (Math.random() < .7) speak(pickLine('idle'), 1.8); } }
     if (timeLeft <= 0){ timeLeft = 0; endFight(false); }
     const B = opp.bs;
@@ -1857,6 +1955,7 @@ function step(dt){
     const p = debris[i]; p.life += dt; p.vy += p.g*k; p.x += p.vx*k; p.y += p.vy*k; p.vx *= .98; p.rot += p.vr*k;
     if ((p.kind==='shard' || p.kind==='splinter' || p.kind==='plank' || p.kind==='scale') && p.vy > 0 && p.y >= p.land){ floorStain(p.x, p.land, p.kind==='plank' ? p.size*.6 : p.size, p.kind==='plank' ? 'splinter' : p.kind==='scale' ? 'scale' : p.kind); debris.splice(i,1); continue; }
     if (p.kind==='water' && p.vy > 0 && p.y >= p.land){ debris.splice(i,1); continue; }
+    if (p.kind==='poo' && p.vy > 0 && p.y >= p.land){ floorStain(p.x, p.land, p.size, 'poo'); debris.splice(i,1); continue; }
     if ((p.kind==='glass' || p.kind==='neck' || p.kind==='label') && p.vy > 0 && p.y >= p.land){ floorStain(p.x, p.land, p.kind==='neck' ? 7 : p.size, p.kind==='label' ? 'label' : 'glassf'); debris.splice(i,1); continue; }
     if (p.life >= p.max) debris.splice(i,1);
   }
@@ -1876,7 +1975,7 @@ function step(dt){
   for (let i=floats.length-1;i>=0;i--){ floats[i].t += dt; if (floats[i].t > .8) floats.splice(i,1); }
   for (let i=bursts.length-1;i>=0;i--){ bursts[i].t += dt; if (bursts[i].t > .55) bursts.splice(i,1); }
   for (let i=rings.length-1;i>=0;i--){ rings[i].t += dt; if (rings[i].t > rings[i].max) rings.splice(i,1); }
-  updSpecial(dt);
+  updSpecial(dt); updFlies(dt);
   shake *= Math.pow(.82, k);
 }
 
@@ -1895,15 +1994,16 @@ function fightUI(regenOn){
   setUI('oppName','text', opp.name); setUI('oppCnt','text', String(kos(opp.id)));
   setUI('hpFill','width', (opp.hp/opp.maxHp*100).toFixed(1) + '%'); setUI('hpText','text', Math.ceil(opp.hp) + ' / ' + opp.maxHp);
   setUI('hpBar','class', 'bar hp' + (regenOn ? ' regen' : ''));
-  if (mode === 'fight'){ setUI('status','text', opp.bs ? (opp.hp < opp.maxHp*.3 ? 'ГРИЦКО-ЁПТ В ЯРОСТИ' : 'Бей, пока не закрылся') : regenOn ? 'Отдыхает, сука. Бей!' : 'Хуярь по ебалу'); setUI('status','class', 'status' + (regenOn ? ' warn' : '')); }
+  if (mode === 'fight' && performance.now() < pooUntil && !opp.ko) setUI('status','text', '💩 Он в говне — бей, пока не очухался!');
+  else if (mode === 'fight'){ setUI('status','text', opp.bs ? (opp.hp < opp.maxHp*.3 ? 'ГРИЦКО-ЁПТ В ЯРОСТИ' : 'Бей, пока не закрылся') : regenOn ? 'Отдыхает, сука. Бей!' : 'Хуярь по ебалу'); setUI('status','class', 'status' + (regenOn ? ' warn' : '')); }
   setUI('enFill','width', (S.energy/enMax()*100).toFixed(1) + '%'); setUI('enText','text', '⚡ ' + Math.floor(S.energy) + ' / ' + enMax());
   const mult = 1 + Math.min(combo,40)/20;
   const live = combo > 2 && performance.now()-lastHit < 600, nx = live ? nextSpecial(combo, opp.id) : null;
   setUI('combo','text', live ? 'КОМБО ×' + mult.toFixed(2) : '');
   setUI('comboNext','text', nx && nx.in <= 6 ? SPEC_HINT[nx.k] + ' через ' + nx.in : '');
   const need = SKILL_NEED(opp.id);
-  for (const [k, id] of [['lesch','skLesch'], ['bottle','skBottle']]){
-    const pr = Math.min(1, skCh[k]/need[k]); setUI(id, 'p', pr.toFixed(3)); setUI(id, 'class', 'skill' + (id === 'skBottle' ? ' r' : '') + (pr >= 1 ? ' ready' : ''));
+  for (const [k, id] of [['lesch','skLesch'], ['bottle','skBottle'], ['poo','skPoo']]){
+    const pr = Math.min(1, skCh[k]/need[k]); setUI(id, 'p', pr.toFixed(3)); setUI(id, 'class', 'skill' + (id === 'skBottle' ? ' r' : id === 'skPoo' ? ' c' : '') + (pr >= 1 ? ' ready' : ''));
   }
 }
 
@@ -2172,6 +2272,7 @@ const QPOOL = [
   {id:'bottle3',   t:'Разбей 3 бутылки об голову',        ev:'bottle',   need:3,   st:4},
   {id:'kobottle',  t:'Добей кого-нибудь бутылкой',        ev:'kobottle', need:1,   st:5},
   {id:'double2',   t:'Проведи 2 двоечки',                 ev:'double',   need:2,   st:4},
+  {id:'poo3',      t:'Кинь говном в ебало 3 раза',        ev:'poo',      need:3,   st:4},
   {id:'combo25',   t:'Серия из 25 быстрых ударов',        ev:'combo',    need:25,  st:4, max:true},
   {id:'hits300',   t:'Нанеси 300 ударов',                 ev:'hit',      need:300, st:3},
   {id:'char',      t:'Набей ебало дважды: {name}',        ev:'kochar',   need:2,   st:3},
@@ -2368,7 +2469,7 @@ function fixState(){
 }
 fixState(); cloudLoad();
 $('musM').onclick = e => { e.stopPropagation(); toggleMusic(); };
-for (const [id, k] of [['skLesch','lesch'], ['skBottle','bottle']]){
+for (const [id, k] of [['skLesch','lesch'], ['skBottle','bottle'], ['skPoo','poo']]){
   const b = $(id); b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); if (AC && AC.state === 'suspended') AC.resume(); useSkill(k); });
 }
 { const bc = $('skBottleIco').getContext('2d'); bc.clearRect(0,0,60,96); drawBottle(bc, 30, 58, 0, .62); }

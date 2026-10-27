@@ -90,9 +90,9 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 .wpChange{font-family:var(--display);font-size:13px;color:var(--cyan);white-space:nowrap}
 .paneHead h2{font-family:var(--display);font-size:24px;margin:4px 0 2px}
 .paneHead p{margin:0;color:var(--dim);font-size:15px}
-.tabbar{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;background:rgba(0,0,0,.4);padding:5px;border-radius:18px;margin-top:2px}
-.tb{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px;background:transparent;box-shadow:none;color:var(--dim);font-family:var(--display);font-size:11px;letter-spacing:.02em;border-radius:14px}
-.tb .ic{font-size:21px;line-height:1}
+.tabbar{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;background:rgba(0,0,0,.4);padding:5px;border-radius:18px;margin-top:2px}
+.tb{position:relative;display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px;background:transparent;box-shadow:none;color:var(--dim);font-family:var(--display);font-size:9.5px;letter-spacing:0;border-radius:14px;min-width:0}
+.tb .ic{font-size:20px;line-height:1}
 .tb[aria-selected="true"]{background:linear-gradient(180deg,var(--hot2),var(--hot));color:#fff;box-shadow:0 3px 0 #7a0a22}
 .tb:active{transform:none}
 .dot{position:absolute;top:5px;right:calc(50% - 22px);width:11px;height:11px;border-radius:50%;background:var(--lime);box-shadow:0 0 0 2px #1a0633,0 0 8px var(--lime)}
@@ -104,6 +104,32 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 .card .buy.cant{color:var(--dim);background:rgba(255,255,255,.08);box-shadow:none;opacity:1}
 .card .lockInfo{font-size:13px;text-align:center;color:var(--dim);padding:6px 2px;line-height:1.2}
 .upList{display:flex;flex-direction:column;gap:10px}
+.giftCard{padding:12px;border-radius:16px;background:linear-gradient(135deg,#3a0d5c,#7a0a22);box-shadow:0 4px 0 #120624,0 0 0 2px rgba(255,201,60,.35) inset}
+.giftCard h3{font-family:var(--display);font-size:17px;margin:0 0 8px}
+.gDays{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:10px}
+.gDay{display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 0;border-radius:10px;background:rgba(0,0,0,.3);font-size:10px;color:var(--dim)}
+.gDay b{font-family:var(--display);font-size:13px;color:#fff}
+.gDay.past{opacity:.45}
+.gDay.now{background:var(--gold);color:#3a1d00}.gDay.now b{color:#3a1d00}
+.qCard{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:linear-gradient(180deg,var(--panel2),var(--panel));box-shadow:0 4px 0 #120624}
+.qCard.got{opacity:.55}
+.qBody{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
+.qBody b{font-size:15px}
+.qBar{height:8px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
+.qBar i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan),#7fe0ff);border-radius:99px}
+.qBody small{color:var(--dim);font-size:12px}
+.qNote{color:var(--dim);font-size:13px;text-align:center;margin:2px 0 6px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:rgba(0,0,0,.35);padding:4px;border-radius:14px}
+.seg button{background:transparent;box-shadow:none;color:var(--dim);font-family:var(--display);font-size:14px;padding:8px;border-radius:11px}
+.seg button.on{background:linear-gradient(180deg,var(--hot2),var(--hot));color:#fff;box-shadow:0 3px 0 #7a0a22}
+.topList{display:flex;flex-direction:column;gap:6px}
+.topRow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.topRow .rk{width:30px;text-align:center;font-family:var(--display);font-size:16px;color:var(--dim)}
+.topRow .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}
+.topRow .nm i{color:var(--gold);font-style:normal;font-size:12px}
+.topRow b{font-family:var(--display);font-size:17px;color:var(--gold)}
+.topRow.me{box-shadow:0 0 0 2px var(--gold) inset}
+.topEmpty{text-align:center;color:var(--dim);padding:24px 8px}
 .upCard{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:linear-gradient(180deg,var(--panel2),var(--panel));box-shadow:0 4px 0 #120624}
 .upIcon{font-size:34px;width:52px;height:52px;display:grid;place-items:center;background:rgba(0,0,0,.3);border-radius:14px;flex:none}
 .upBody{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
@@ -206,7 +232,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
         <span class="pill s"><span class="star" aria-hidden="true"></span><b id="mStars">0</b></span>
         <span class="qmark" aria-hidden="true">?</span>
       </button>
-      <div class="wallet"><button class="demo" id="musM" type="button">♪ вкл</button><button class="demo" id="demoStars" type="button">+100 ★ тест</button></div>
+      <div class="wallet"><button class="demo" id="musM" type="button">♪ вкл</button></div>
     </div>
 
     <div class="pane" id="paneRing">
@@ -231,7 +257,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       </button>
       <button class="go" id="go" type="button"><span class="goGlove">🥊</span> В БОЙ</button>
       <div class="world" id="world" hidden>🌍 Всего набито ебальников всеми: <b id="worldTotal">0</b></div>
-      <div class="verTag">v38</div>
+      <div class="verTag">v39</div>
     </div>
 
     <div class="pane" id="paneChars" hidden>
@@ -250,11 +276,26 @@ button:disabled{opacity:.45;cursor:default;transform:none}
       </div>
     </div>
 
+    <div class="pane" id="paneQuest" hidden>
+      <div class="paneHead"><h2>Задания</h2><p>Каждый день новые. Выполняй и забирай звёзды на оружие.</p></div>
+      <div class="giftCard" id="giftCard"></div>
+      <div class="upList" id="questList"></div>
+      <p class="qNote" id="qNote"></p>
+    </div>
+    <div class="pane" id="paneTop" hidden>
+      <div class="paneHead"><h2>Топ бойцов</h2><p>Кто больше всех набил ебальников.</p></div>
+      <div class="seg" role="tablist"><button type="button" id="topWeek" class="on">Эта неделя</button><button type="button" id="topAll">Всё время</button></div>
+      <div class="topList" id="topList"></div>
+      <p class="qNote" id="topNote"></p>
+    </div>
+
     <nav class="tabbar" role="tablist">
       <button class="tb" id="tbRing" role="tab" type="button"><span class="ic">🥊</span><span>Ринг</span></button>
       <button class="tb" id="tbChars" role="tab" type="button"><span class="ic">👊</span><span>Ебальники</span><i class="dot" id="dotChars" hidden></i></button>
       <button class="tb" id="tbWeap" role="tab" type="button"><span class="ic">🔨</span><span>Оружие</span><i class="dot" id="dotWeap" hidden></i></button>
       <button class="tb" id="tbUp" role="tab" type="button"><span class="ic">⬆️</span><span>Прокачка</span><i class="dot" id="dotUp" hidden></i></button>
+      <button class="tb" id="tbQuest" role="tab" type="button"><span class="ic">🎯</span><span>Задания</span><i class="dot" id="dotQuest" hidden></i></button>
+      <button class="tb" id="tbTop" role="tab" type="button"><span class="ic">🏆</span><span>Топ</span></button>
     </nav>
     <div class="toast" id="toast" hidden></div>
   </section>
@@ -293,7 +334,7 @@ button:disabled{opacity:.45;cursor:default;transform:none}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script>
 /* ===== Автообновление: если на сервере версия новее, грузим её мимо кэша ===== */
-const GAME_VERSION = 38;
+const GAME_VERSION = 39;
 (function(){
   function check(){
     fetch(location.pathname + '?nocache=' + Date.now(), {cache:'no-store'})
@@ -431,7 +472,44 @@ const weapById = id => WEAPONS.find(w => w.id === id);
 /* ===== Прогресс ===== */
 let S = { coins:0, stars:50, powLvl:0, enLvl:0, energy:500, chars:[], weapons:['fist'], weapon:'fist', sel:'spartak', kos:{}, music:true };
 try { const s = JSON.parse(localStorage.getItem('mordoboy4') || 'null'); if (s) S = Object.assign(S, s); } catch(e){}
-function save(){ try { localStorage.setItem('mordoboy4', JSON.stringify(S)); } catch(e){} }
+function save(){ S.ts = Date.now(); try { localStorage.setItem('mordoboy4', JSON.stringify(S)); } catch(e){} cloudSave(false); }
+/* ===== Игрок и облачные сохранения (CloudStorage Телеграма: прогресс общий на всех устройствах) ===== */
+const TG = window.Telegram && window.Telegram.WebApp;
+const TGU = (() => { try { return (TG && TG.initDataUnsafe && TG.initDataUnsafe.user) || null; } catch(e){ return null; } })();
+const CS = (() => { try { return TG && TG.isVersionAtLeast && TG.isVersionAtLeast('6.9') && TG.CloudStorage ? TG.CloudStorage : null; } catch(e){ return null; } })();
+const LOCAL_TS0 = S.ts || 0;
+let cloudReady = !CS, cloudT = 0;
+function rid(n){ const a = new Uint8Array(n); crypto.getRandomValues(a); return Array.from(a, b => b.toString(16).padStart(2,'0')).join(''); }
+function ensureId(){
+  if (!S.psec) S.psec = rid(16);
+  if (TGU && TGU.id) S.pid = 'tg:' + TGU.id;
+  else if (!S.pid) S.pid = 'web:' + rid(6);
+}
+function myName(){
+  if (!TGU) return 'Боец';
+  return ((TGU.first_name || '') + ' ' + (TGU.last_name || '')).trim() || (TGU.username ? '@' + TGU.username : 'Боец');
+}
+function cloudSave(force){
+  if (!CS || !cloudReady) return;
+  const now = Date.now(); if (!force && now - cloudT < 8000) return; cloudT = now;
+  try { const j = JSON.stringify(S); if (j.length < 4000) CS.setItem('save', j, () => {}); } catch(e){}
+}
+function cloudLoad(){
+  if (!CS) return;
+  const done = () => { cloudReady = true; cloudSave(true); };
+  try {
+    CS.getItem('save', (err, v) => {
+      let c = null; try { c = v ? JSON.parse(v) : null; } catch(e){}
+      if (!err && c && (c.ts || 0) > LOCAL_TS0 && mode !== 'fight'){
+        S = Object.assign(S, c); fixState(); try { localStorage.setItem('mordoboy4', JSON.stringify(S)); } catch(e){}
+        renderMenu(); musLabels(); toast('☁️ Прогресс подтянут из облака', 1800);
+      }
+      done();
+    });
+  } catch(e){ done(); }
+  setTimeout(() => { if (!cloudReady) cloudReady = true; }, 5000);
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) cloudSave(true); });
 const power = () => 1 + S.powLvl;
 const enMax = () => 500 + 250*S.enLvl;
 const regenEn = () => 3 + 1.5*S.enLvl;
@@ -569,7 +647,7 @@ const REGK = Object.keys(REG);
 
 function makeOpp(c){
   const k = kos(c.id);
-  const o = { c, id:c.id, name:c.name, maxHp:Math.round(c.hp*Math.pow(c.grow||1.25, k)), dmg:{}, cutStage:{}, cuts:[], teeth:[1,1,1,1,1,1], teethHits:0,
+  const o = { c, id:c.id, name:c.name, maxHp:Math.round(c.hp*Math.min(c.boss ? 4 : 3, Math.pow(c.boss ? 1.12 : 1.08, k))), dmg:{}, cutStage:{}, cuts:[], teeth:[1,1,1,1,1,1], teethHits:0,
     skin:SKINS[c.skin], hair:c.hair, hairH:c.hairH, noseDir:c.nose, mus:c.mus, beard:c.beard,
     lumps:Array.from({length:6},()=>({a:rnd(-Math.PI,Math.PI),s:rnd(6,14)})), ko:false };
   o.sprite = c.sprite ? SPRITES[c.sprite] : null;
@@ -607,7 +685,7 @@ function endFight(win){
   musOutro();
   if (win){
     S.kos[opp.id] = kos(opp.id) + 1;
-    addGlobal(opp.id);
+    addGlobal(opp.id); reportKO();
     if (opp.c.boss){
       const bonus = opp.c.reward + 500*(kos(opp.id)-1); S.coins += bonus; S.stars += opp.c.rewardStars;
       $('resT').textContent = 'ГРИЦКО-ЁПТ ПОВЕРЖЕН';
@@ -624,7 +702,7 @@ function endFight(win){
     haptic('heavy');
   }
   el('nextFight').hidden = ownedChars().length < 2;
-  $('result').hidden = false; save();
+  $('result').hidden = false; save(); cloudSave(true);
 }
 
 /* ===== Кровь и частицы ===== */
@@ -705,7 +783,7 @@ function specialAt(n, id){
   return n % 25 === 0 ? 'double' : null;
 }
 function nextSpecial(n, id){ for (let m = n+1; m <= n+30; m++){ const k = specialAt(m, id); if (k) return {k, in:m-n}; } return null; }
-let spec = null;
+let spec = null, koSrc = '';
 function headTop(){ const E = opp.ell; return toScreen(E.cx, E.cy - E.ry*.85); }
 function headMid(){ const E = opp.ell; return toScreen(E.cx, E.cy); }
 function startSpecial(kind){
@@ -741,8 +819,8 @@ function specBottleHit(){
     for (let i=0;i<9;i++) setTimeout(() => tone(rnd(2600,5200), rnd(2500,5000), .18, .06, 'triangle'), 40 + i*35 + rnd(0,30));
   }
   haptic('heavy'); setTimeout(() => haptic('heavy'), 90);
-  specLine('bottle');
-  specDamage(SPECIALS.bottle.pct, hx, hy, 0, -1);
+  specLine('bottle'); qEvent('bottle');
+  koSrc = 'bottle'; specDamage(SPECIALS.bottle.pct, hx, hy, 0, -1); koSrc = '';
 }
 function specLeschHit(){
   const [cx, cy] = headMid(), s = spec.s, RG = opp.reg, ck = s > 0 ? RG.cheekR : RG.cheekL;
@@ -760,7 +838,7 @@ function specLeschHit(){
   burst(cx, cy - 120, SPECIALS.lesch.name, SPECIALS.lesch.col, true);
   if (audio()){ nz(.09, 'bandpass', 2600, 1.1, 1.8); tone(420, 140, .09, .45); }
   haptic('heavy');
-  specLine('lesch');
+  specLine('lesch'); qEvent('lesch');
   specDamage(SPECIALS.lesch.pct, sx, sy, -s, 0);
 }
 function specDoubleHit(n){
@@ -775,7 +853,7 @@ function specDoubleHit(n){
   if (!reduceMotion) shake = Math.max(shake, 10);
   if (audio()){ tone(130, 40, .2, .9); nz(.08, 'lowpass', 900, .6); }
   haptic('heavy');
-  if (n === 2){ burst(sx, sy - 60, SPECIALS.double.name, SPECIALS.double.col, true); specLine('double'); }
+  if (n === 2){ burst(sx, sy - 60, SPECIALS.double.name, SPECIALS.double.col, true); specLine('double'); qEvent('double'); }
   specDamage(SPECIALS.double.pct/2, sx, sy, dx, dy);
 }
 function updSpecial(dt){
@@ -1088,6 +1166,7 @@ function hit(px, py){
 
   const now = performance.now();
   combo = now - lastHit < 380 ? combo + 1 : 0; lastHit = now;
+  qEvent('hit'); if (combo >= 5) qEvent('combo', combo + 1);
   const mult = 1 + Math.min(combo, 40)/20;
   const crit = Math.random() < .1;
   const dmg = Math.max(1, Math.round(power()*wp.mult*mult*(crit?2:1)));
@@ -1144,6 +1223,7 @@ function hit(px, py){
 function knockOut(sx, sy, dx, dy){
   if (opp.ko) return;
   opp.ko = true; koT = 0; stun = 3; spec = null;
+  qEvent('ko'); qEvent('kochar', 1, opp.id); if (opp.c.boss) qEvent('koboss'); if (koSrc === 'bottle') qEvent('kobottle');
   speak(own('ko') || 'Всё...', 2.6, true);
   startFinisher(sx, sy, dx, dy);
   setTimeout(() => endFight(true), 2300);
@@ -2002,10 +2082,115 @@ function renderUp(){
   bp.className = 'upBtn' + (S.coins < pc ? ' cant' : ''); bp.innerHTML = S.coins >= pc ? `Улучшить<br>${fmt(pc)} 🪙` : `${fmt(pc)} 🪙<br>ещё ${fmt(pc - S.coins)}`;
   be.className = 'upBtn' + (S.coins < ec ? ' cant' : ''); be.innerHTML = S.coins >= ec ? `Улучшить<br>${fmt(ec)} 🪙` : `${fmt(ec)} 🪙<br>ещё ${fmt(ec - S.coins)}`;
 }
+
+/* ===== Задания дня, ежедневный подарок, топ ===== */
+const esc = t => String(t).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const QPOOL = [
+  {id:'ko3',       t:'Набей 3 ебальника',                 ev:'ko',       need:3,   st:3},
+  {id:'ko6',       t:'Набей 6 ебальников',                ev:'ko',       need:6,   st:5},
+  {id:'lesch5',    t:'Дай 5 лещей',                       ev:'lesch',    need:5,   st:3},
+  {id:'bottle3',   t:'Разбей 3 бутылки об голову',        ev:'bottle',   need:3,   st:4},
+  {id:'kobottle',  t:'Добей кого-нибудь бутылкой',        ev:'kobottle', need:1,   st:5},
+  {id:'double2',   t:'Проведи 2 двоечки',                 ev:'double',   need:2,   st:4},
+  {id:'combo25',   t:'Серия из 25 быстрых ударов',        ev:'combo',    need:25,  st:4, max:true},
+  {id:'hits300',   t:'Нанеси 300 ударов',                 ev:'hit',      need:300, st:3},
+  {id:'char',      t:'Набей ебало дважды: {name}',        ev:'kochar',   need:2,   st:3},
+  {id:'boss',      t:'Победи Грицко-Ёпт',                 ev:'koboss',   need:1,   st:6, cond: () => bossOpen()},
+];
+const GIFT = [ {st:2, c:300}, {st:3, c:500}, {st:4, c:800}, {st:5, c:1200}, {st:6, c:1600}, {st:8, c:2200}, {st:12, c:3000} ];
+const mskDay = (off=0) => new Date(Date.now() + 3*3600e3 + off*864e5).toISOString().slice(0,10);
+function seedRnd(str){ let h = 2166136261; for (const ch of str){ h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619); } return () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000)/100000; }; }
+const qDef = id => QPOOL.find(q => q.id === id);
+function qTitle(o){ return qDef(o.id).t.replace('{name}', (charById(o.c) || {}).name || 'кого-нибудь'); }
+function ensureQuests(){
+  const d = mskDay(); if (S.q && S.q.day === d && S.q.list.every(o => qDef(o.id))) return;
+  const r = seedRnd(d + (S.pid || '')), pool = QPOOL.filter(q => !q.cond || q.cond()), list = [];
+  while (list.length < 3 && pool.length){
+    const q = pool.splice(Math.floor(r()*pool.length), 1)[0];
+    if (q.id === 'ko6' && list.some(o => o.id === 'ko3') || q.id === 'ko3' && list.some(o => o.id === 'ko6')) continue;
+    const o = {id:q.id, p:0, done:false, got:false};
+    if (q.id === 'char'){ const own = ownedChars(); o.c = own[Math.floor(r()*own.length)].id; }
+    list.push(o);
+  }
+  S.q = { day:d, list };
+}
+function qEvent(ev, val=1, extra){
+  ensureQuests();
+  for (const o of S.q.list){
+    const q = qDef(o.id); if (!q || o.done || q.ev !== ev) continue;
+    if (ev === 'kochar' && extra !== o.c) continue;
+    o.p = q.max ? Math.max(o.p, val) : o.p + val;
+    if (o.p >= q.need){
+      o.p = q.need; o.done = true;
+      if (mode === 'fight') burst(W/2, 150, 'ЗАДАНИЕ ✓', '#33d6ff', true);
+      else toast(`🎯 Задание выполнено: <b>${esc(qTitle(o))}</b>`, 2200);
+    }
+  }
+}
+function giftState(){
+  const g = S.gift || {day:'', streak:0};
+  if (g.day === mskDay()) return {ready:false, streak:g.streak};
+  return {ready:true, streak: g.day === mskDay(-1) ? g.streak + 1 : 1};
+}
+function claimGift(){
+  const gs = giftState(); if (!gs.ready) return;
+  const R = GIFT[(gs.streak - 1) % 7]; S.stars += R.st; S.coins += R.c; S.gift = {day:mskDay(), streak:gs.streak};
+  save(); cloudSave(true); haptic('ko'); toast(`🎁 День ${gs.streak}: <b>+${R.st} ★</b> и <b>+${fmt(R.c)} 🪙</b>`, 2400); renderMenu();
+}
+function claimQuest(i){
+  const o = S.q.list[i]; if (!o || !o.done || o.got) return;
+  const q = qDef(o.id); o.got = true; S.stars += q.st;
+  let extra = '';
+  if (S.q.list.every(x => x.got)){ S.stars += 5; extra = ' + <b>5 ★</b> за все три'; }
+  save(); cloudSave(true); haptic('ko'); toast(`🎯 <b>+${q.st} ★</b>${extra}`, 2200); renderMenu();
+}
+function renderQuest(){
+  ensureQuests();
+  const gs = giftState(), cur = ((gs.ready ? gs.streak : gs.streak) - 1) % 7, base = gs.streak - 1 - cur;
+  const days = GIFT.map((g, i) => `<div class="gDay${i < cur || (!gs.ready && i === cur) ? ' past' : ''}${gs.ready && i === cur ? ' now' : ''}"><span>День ${base + i + 1}</span><b>${g.st}★</b></div>`).join('');
+  const nx = GIFT[gs.streak % 7];
+  el('giftCard').innerHTML = `<h3>🎁 Ежедневный подарок</h3><div class="gDays">${days}</div>` +
+    (gs.ready ? `<button class="main" id="giftBtn" type="button" style="width:100%">Забрать: +${GIFT[cur].st} ★ и +${fmt(GIFT[cur].c)} 🪙</button>`
+              : `<p class="qNote" style="margin:0">Забрано. Завтра: <b>+${nx.st} ★</b>. Пропустишь день — серия начнётся заново.</p>`);
+  const gb = document.getElementById('giftBtn'); if (gb) gb.onclick = claimGift;
+  el('questList').innerHTML = S.q.list.map((o, i) => {
+    const q = qDef(o.id), pr = Math.min(1, o.p/q.need);
+    const btn = o.got ? '<span class="upIcon" style="font-size:22px">✅</span>'
+      : o.done ? `<button class="upBtn" data-q="${i}" type="button">Забрать<br>+${q.st} ★</button>`
+      : `<span class="upIcon" style="font-size:15px;font-family:var(--display);color:var(--gold)">+${q.st}★</span>`;
+    return `<div class="qCard${o.got ? ' got' : ''}"><div class="upIcon">🎯</div><div class="qBody"><b>${esc(qTitle(o))}</b><div class="qBar"><i style="width:${(pr*100).toFixed(0)}%"></i></div><small>${fmt(Math.floor(o.p))} / ${fmt(q.need)}</small></div>${btn}</div>`;
+  }).join('');
+  el('questList').querySelectorAll('[data-q]').forEach(b => b.onclick = () => claimQuest(+b.dataset.q));
+  const ms = new Date(mskDay(1) + 'T00:00:00+03:00') - Date.now(), h = Math.floor(ms/3600e3), m = Math.floor(ms/60e3) % 60;
+  el('qNote').innerHTML = `Выполнишь все три — ещё <b>+5 ★</b>. Новые задания через ${h} ч ${m} мин.`;
+}
+function questDot(){ ensureQuests(); return giftState().ready || S.q.list.some(o => o.done && !o.got); }
+function reportKO(){
+  ensureId();
+  fetch(SB_URL + '/rest/v1/rpc/player_ko', { method:'POST', headers: SB_H, body: JSON.stringify({ p_id:S.pid, p_secret:S.psec, p_name:myName() }) })
+    .then(r => r.ok ? r.json() : Promise.reject()).then(j => { S.myWeek = j.week; S.myTotal = j.total; topCache = {}; }).catch(() => {});
+}
+let topScope = 'week', topCache = {};
+function renderTop(){
+  ensureId();
+  el('topWeek').className = topScope === 'week' ? 'on' : ''; el('topAll').className = topScope === 'all' ? 'on' : '';
+  el('topNote').textContent = TGU ? `В топе ты под именем «${myName()}» из Телеграма. Недельный топ обнуляется в понедельник.` : 'Открой игру через Телеграм-бота, чтобы попасть в топ под своим именем.';
+  const sc = topScope;
+  el('topList').innerHTML = topCache[sc] || '<div class="topEmpty">Загружаю…</div>';
+  fetch(SB_URL + '/rest/v1/rpc/leaderboard', { method:'POST', headers: SB_H, body: JSON.stringify({ p_scope:sc, p_id:S.pid }) })
+    .then(r => r.ok ? r.json() : Promise.reject())
+    .then(rows => {
+      const html = rows.length ? rows.map(r => `<div class="topRow${r.is_me ? ' me' : ''}"><span class="rk">${r.rank <= 3 ? ['🥇','🥈','🥉'][r.rank-1] : r.rank}</span><span class="nm">${esc(r.name)}${r.is_me ? ' <i>это ты</i>' : ''}</span><b>${fmt(r.kos)}</b></div>`).join('')
+        : `<div class="topEmpty">${sc === 'week' ? 'На этой неделе ещё никто не набил. Будь первым!' : 'Пока пусто. Набей первым!'}</div>`;
+      topCache[sc] = html; if (pane === 'top' && topScope === sc) el('topList').innerHTML = html;
+    })
+    .catch(() => { if (pane === 'top' && !topCache[sc]) el('topList').innerHTML = '<div class="topEmpty">Нет связи с сервером. Попробуй позже.</div>'; });
+}
 function updateDots(){
   setUI('dotChars','hiddenP', !CHARS.some(c => charState(c) === 'buy'));
   setUI('dotWeap','hiddenP', !WEAPONS.some(w => weapState(w) === 'buy'));
   setUI('dotUp','hiddenP', !(S.coins >= powCost() || S.coins >= enCost()));
+  setUI('dotQuest','hiddenP', !questDot());
 }
 let pane = 'ring';
 function renderMenu(){
@@ -2014,14 +2199,16 @@ function renderMenu(){
   if (pane === 'chars') renderCards('chars');
   if (pane === 'weap') renderCards('weap');
   if (pane === 'up') renderUp();
+  if (pane === 'quest') renderQuest();
+  if (pane === 'top') renderTop();
 }
 const renderList = renderMenu;
 function showPane(p){
   pane = p;
-  for (const [id, key] of [['paneRing','ring'],['paneChars','chars'],['paneWeap','weap'],['paneUp','up']]) el(id).hidden = key !== p;
-  for (const [id, key] of [['tbRing','ring'],['tbChars','chars'],['tbWeap','weap'],['tbUp','up']]) el(id).setAttribute('aria-selected', key === p);
+  for (const [id, key] of [['paneRing','ring'],['paneChars','chars'],['paneWeap','weap'],['paneUp','up'],['paneQuest','quest'],['paneTop','top']]) el(id).hidden = key !== p;
+  for (const [id, key] of [['tbRing','ring'],['tbChars','chars'],['tbWeap','weap'],['tbUp','up'],['tbQuest','quest'],['tbTop','top']]) el(id).setAttribute('aria-selected', key === p);
   renderMenu();
-  const pe = el({ring:'paneRing',chars:'paneChars',weap:'paneWeap',up:'paneUp'}[p]); pe.scrollTop = 0;
+  const pe = el({ring:'paneRing',chars:'paneChars',weap:'paneWeap',up:'paneUp',quest:'paneQuest',top:'paneTop'}[p]); pe.scrollTop = 0;
   if (p === 'ring') requestAnimationFrame(() => { stageW = 0; sizeStage(); });
 }
 const setTab = t => showPane(t);
@@ -2036,11 +2223,14 @@ el('tbRing').onclick = () => showPane('ring');
 el('tbChars').onclick = () => showPane('chars');
 el('tbWeap').onclick = () => showPane('weap');
 el('tbUp').onclick = () => showPane('up');
+el('tbQuest').onclick = () => showPane('quest');
+el('tbTop').onclick = () => showPane('top');
+el('topWeek').onclick = () => { topScope = 'week'; renderTop(); };
+el('topAll').onclick = () => { topScope = 'all'; renderTop(); };
 el('prevOpp').onclick = () => cycleOpp(-1);
 el('nextOpp').onclick = () => cycleOpp(1);
 el('weaponPlate').onclick = () => showPane('weap');
-el('walletBtn').onclick = () => toast('🪙 <b>Монеты</b> — за удары и нокауты. Тратишь на новых ебальников и прокачку.<br>★ <b>Звёзды</b> — на оружие.', 4200);
-el('demoStars').onclick = () => { S.stars += 100; save(); renderMenu(); };
+el('walletBtn').onclick = () => toast('🪙 <b>Монеты</b> — за удары и нокауты. Тратишь на новых ебальников и прокачку.<br>★ <b>Звёзды</b> — на оружие. Даются за задания, ежедневный подарок и босса (вкладка «Задания»).', 4200);
 el('go').onclick = () => { audio(); startFight(); };
 el('again').onclick = () => startFight();
 el('nextFight').onclick = () => { cycleOpp(1); startFight(); };
@@ -2052,10 +2242,14 @@ el('upPow').onclick = () => { const c = powCost(); if (S.coins >= c){ S.coins -=
 el('upEn').onclick = () => { const c = enCost(); if (S.coins >= c){ S.coins -= c; S.enLvl++; S.energy = enMax(); save(); toast(`⚡ Энергия: <b>${enMax()}</b>`, 1600); renderMenu(); } else toast(`Не хватает <b>${fmt(c - S.coins)} 🪙</b>`); };
 
 try { const tg = window.Telegram?.WebApp; if (tg){ tg.ready(); tg.expand(); } } catch(e){}
-S.chars = S.chars.filter(id => charById(id));
-CHARS.forEach(c => { if (c.gold === 0 && !S.chars.includes(c.id)) S.chars.push(c.id); });
-if (!S.chars.includes(S.sel) && !(S.sel === BOSS.id && bossOpen())) S.sel = CHARS[0].id;
-if (!S.weapons.includes(S.weapon)) S.weapon = 'fist';
+function fixState(){
+  S.chars = S.chars.filter(id => charById(id));
+  CHARS.forEach(c => { if (c.gold === 0 && !S.chars.includes(c.id)) S.chars.push(c.id); });
+  if (!S.chars.includes(S.sel) && !(S.sel === BOSS.id && bossOpen())) S.sel = CHARS[0].id;
+  if (!S.weapons.includes(S.weapon)) S.weapon = 'fist';
+  ensureId(); ensureQuests();
+}
+fixState(); cloudLoad();
 $('musM').onclick = e => { e.stopPropagation(); toggleMusic(); };
 for (const [id, k] of [['skLesch','lesch'], ['skBottle','bottle']]){
   const b = $(id); b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); audio(); if (AC && AC.state === 'suspended') AC.resume(); useSkill(k); });
